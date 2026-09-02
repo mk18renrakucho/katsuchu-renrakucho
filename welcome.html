@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勝中 連絡帳</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c1a2e;--surface:#132038;--border:#1e3050;
+  --accent:#2d5a9e;--accent-dark:#1d3f6e;
+  --text:#f0ece4;--sub:#8a9ab5;--r:12px;
+}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:0 0 40px;
+}
+.banner{
+  width:100%;background:#1a3a5c;color:#fff;
+  text-align:center;padding:8px 12px;font-size:12px;line-height:1.8;
+}
+.inner{max-width:400px;width:100%;text-align:center;padding:24px 16px 0;}
+.logo{margin-bottom:32px}
+.logo .icon{font-size:52px;margin-bottom:12px}
+.logo .title{font-size:26px;font-weight:700;letter-spacing:.06em;margin-bottom:6px}
+.logo .sub{font-size:14px;color:var(--sub)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px 22px;box-shadow:0 4px 32px rgba(0,0,0,.4)}
+.screen{display:none}
+.screen.show{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:14px}
+.question{font-size:16px;font-weight:700;line-height:1.6;margin-bottom:6px}
+.hint{font-size:12px;color:var(--sub);margin-bottom:22px}
+input[type=text]{
+  width:100%;padding:13px 16px;
+  background:#0c1a2e;border:1.5px solid var(--border);border-radius:var(--r);
+  font-family:inherit;font-size:16px;color:var(--text);outline:none;
+  transition:border-color .15s;margin-bottom:12px;
+}
+input[type=text]:focus{border-color:var(--accent)}
+.btn-primary{
+  width:100%;padding:13px;background:var(--accent);color:#fff;
+  border:none;border-radius:var(--r);font-family:inherit;font-size:15px;font-weight:700;
+  cursor:pointer;transition:background .15s;letter-spacing:.05em;
+}
+.btn-primary:hover{background:var(--accent-dark)}
+.err-msg{font-size:13px;color:#e74c3c;margin-top:10px;min-height:18px}
+.remain{font-size:12px;color:var(--sub);margin-top:6px}
+.big-icon{font-size:52px;margin-bottom:14px}
+.ok-title{font-size:22px;font-weight:700;color:var(--accent-dark);margin-bottom:10px}
+.ok-msg{font-size:14px;color:#fff;line-height:1.8;margin-bottom:20px;background:var(--accent-dark);border-radius:var(--r);padding:12px 14px;}
+.terms-box{
+  background:#fff;border:1px solid #ddd;border-radius:var(--r);
+  padding:16px;margin-bottom:16px;text-align:left;max-height:240px;overflow-y:auto;
+}
+.terms-box p{font-size:13px;color:#333;line-height:2.0;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
+.terms-box p:last-child{margin-bottom:0;border-bottom:none;padding-bottom:0}
+.terms-check{
+  display:flex;align-items:center;gap:12px;
+  background:#fff;border:2px solid var(--accent-dark);border-radius:var(--r);
+  padding:14px;margin-bottom:20px;text-align:left;cursor:pointer;
+}
+.terms-check input[type=checkbox]{
+  width:22px;height:22px;accent-color:var(--accent-dark);flex-shrink:0;cursor:pointer;
+}
+.terms-check span{font-size:14px;color:#222;line-height:1.6;font-weight:500}
+.choices{display:flex;flex-direction:column;gap:14px}
+.btn-web{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:16px;background:var(--accent-dark);color:#fff;
+  border:none;border-radius:var(--r);font-family:inherit;font-size:16px;font-weight:700;
+  cursor:pointer;text-decoration:none;transition:background .15s;
+  box-shadow:0 4px 12px rgba(29,63,110,0.4);
+}
+.btn-web:hover{background:#142c4d}
+.btn-web[data-disabled="true"]{pointer-events:none;opacity:.4}
+.choice-note{font-size:12px;color:var(--sub);text-align:center;margin-top:-8px}
+.block-icon{font-size:44px;margin-bottom:14px}
+.block-title{font-size:18px;font-weight:700;color:#e74c3c;margin-bottom:8px}
+.block-msg{font-size:13px;color:var(--sub);line-height:1.7}
+.footer{font-size:11px;color:var(--sub);margin-top:22px;opacity:.5}
+</style>
+</head>
+<body>
+<div class="banner">
+  勝中 連絡帳は、同窓生の近況共有を目的としたデジタル回覧板です。<br>
+  個人間の連絡・取引・仲介を行うサービスではありません。
+</div>
+<div class="inner">
+  <div class="logo">
+    <div class="icon">📋</div>
+    <div class="title">勝中 連絡帳</div>
+    <div class="sub">勝山中学校 同窓生ネットワーク</div>
+  </div>
+  <div class="card">
+    <!-- 画面①：クイズ -->
+    <div class="screen show" id="sc-quiz">
+      <p class="lbl">本人確認</p>
+      <p class="question" id="q-text"></p>
+      <p class="hint">勝山中を知っている人だけが答えられます</p>
+      <input type="text" id="q-input" placeholder="答えを入力"
+        autocomplete="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')check()">
+      <button class="btn-primary" onclick="check()">答える</button>
+      <p class="err-msg" id="err"></p>
+      <p class="remain" id="remain"></p>
+    </div>
+    <!-- 画面②：認証完了＋利用規約 -->
+    <div class="screen" id="sc-ok" style="background:#fff;border-radius:12px;padding:4px 0">
+      <div class="big-icon">✅</div>
+      <div class="ok-title">認証完了！</div>
+      <div class="ok-msg">さすが勝山中卒業生ですね👍<br>ご利用前に以下をご確認ください。</div>
+      <div class="terms-box">
+        <p>①本サービスは佐々木宗明（32期・個人）が運営するボランティアサービスです。</p>
+        <p>②登録情報（名前・期・部活・エリア・近況）は同窓生間で共有されます。</p>
+        <p>③住所・電話番号・メールアドレスは収集しません。</p>
+        <p>④本サービスは同窓生の近況共有を目的としており、個人間の連絡・取引・仲介には使用できません。</p>
+        <p>⑤退会したい場合は下記のフォームより管理者にお問い合わせください。</p>
+        <p>⑥運営者の判断によりサービスを終了する場合があります。</p>
+      </div>
+      <label class="terms-check">
+        <input type="checkbox" id="agree-check" onchange="toggleWebBtn()">
+        <span>上記6項目の利用規約に同意します</span>
+      </label>
+      <div class="choices">
+        <a class="btn-web" id="web-btn" href="register.html" data-disabled="true" onclick="return false;">
+          📲 このままWebで登録する
+        </a>
+        <p class="choice-note">友だち追加不要。すぐにメンバー登録できます</p>
+        <p class="choice-note" style="font-size:13px;font-weight:700;color:var(--accent-dark);margin-top:4px">
+          <!-- TODO: 勝中版お問い合わせフォームのURL開設後に差し替え -->
+          📋 <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" style="color:var(--accent-dark)">フォームで管理者にお問い合わせ</a>
+        </p>
+      </div>
+    </div>
+    <!-- 画面③：やり直し案内 -->
+    <div class="screen" id="sc-block">
+      <div class="block-icon">😌</div>
+      <div class="block-title" style="color:var(--accent-dark)">なかなか難しかったですね</div>
+      <div class="block-msg">
+        お手数ですが、<br>
+        もう一度最初からやり直してください。<br>
+        <br>
+        このページを閉じて、<br>
+        もう一度開き直していただくと、<br>
+        新しい問題からやり直せます。<br>
+        <br>
+        心当たりのある方は、<br>
+        既存メンバーにご相談ください。
+      </div>
+    </div>
+  </div>
+  <div class="footer">勝中 連絡帳<br>© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+</div>
+<script>
+// ===================================================
+// 合言葉クイズ
+// 現時点では設問が1問のみ（Code_full.gs側のLINE用クイズと同じ設問）。
+// 設問候補が増えた場合は、この配列に追加すれば自動的にランダム出題・
+// 切り替えの対象になる（QUESTIONS.length<=1の間は同じ問題のまま）。
+// ===================================================
+var MAX = 6;
+var QUESTIONS = [
+  { q:'校門を入ってすぐにある大きな木は？', a:['ユーカリ','ゆーかり','ゆうかり','ユーカリの木'] }
+];
+var tries = 0;
+function pickQuestion(excludeQ){
+  if(QUESTIONS.length <= 1) return QUESTIONS[0];
+  var q;
+  do { q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]; } while(q === excludeQ);
+  return q;
+}
+var current = pickQuestion(null);
+document.getElementById('q-text').textContent = current.q;
+function norm(s){ return (s||'').replace(/[\s　！!。、？?・]/g,'').toLowerCase(); }
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('show'); });
+  document.getElementById(id).classList.add('show');
+}
+function toggleWebBtn(){
+  var checked = document.getElementById('agree-check').checked;
+  var btn = document.getElementById('web-btn');
+  if(checked){
+    btn.removeAttribute('data-disabled');
+    btn.onclick = function(){
+      // クイズに正解した証をこの端末に保存する（無期限・端末単位）。
+      // register.html側はこの値の有無で登録フォームを表示するかどうかを判定する。
+      try{ localStorage.setItem('katsuchu_quiz_passed_at', new Date().toISOString()); }catch(e){}
+      try{ localStorage.setItem('katsuchu_terms_agreed_at', new Date().toISOString()); }catch(e){}
+      return true; // 通常のリンク遷移を続行させる
+    };
+  } else {
+    btn.setAttribute('data-disabled','true');
+    btn.onclick = function(){ return false; };
+    try{ localStorage.removeItem('katsuchu_terms_agreed_at'); }catch(e){}
+  }
+}
+function check(){
+  var val = (document.getElementById('q-input').value||'').trim();
+  if(!val) return;
+  tries++;
+  var ok = current.a.some(function(a){ return norm(val)===norm(a); });
+  if(ok){ show('sc-ok'); return; }
+  var left = MAX - tries;
+  if(left <= 0){ show('sc-block'); return; }
+  current = pickQuestion(current);
+  document.getElementById('q-text').textContent = current.q;
+  document.getElementById('err').textContent = '❌ 違います。もう一度お試しください。';
+  document.getElementById('remain').textContent = 'あと'+left+'回試せます';
+  document.getElementById('q-input').value = '';
+  document.getElementById('q-input').focus();
+}
+</script>
+</body>
+</html>
