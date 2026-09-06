@@ -448,14 +448,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">🔔 通知を許可しますか？</div>
-      <button onclick="closeNotifModal(true)" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+      <button onclick="closeNotifModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
     <div style="font-size:13px;color:var(--text-sub);line-height:1.7;margin-bottom:18px">
       「お知らせ」に新しい投稿があったとき、この端末に通知が届くようになります。<br>
@@ -464,8 +464,27 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <button class="btn btn-primary" onclick="requestNotifPermission()" style="width:100%">
       <i class="ti ti-bell" style="margin-right:4px"></i>許可する
     </button>
-    <button onclick="closeNotifModal(true)" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
+    <button onclick="closeNotifModal()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
       あとで
+    </button>
+  </div>
+</div>
+
+<!-- 通知が拒否済みの人向けの案内モーダル -->
+<div class="modal-overlay" id="modal-notif-denied">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-weight:500;font-size:16px">🔔 通知が届いていないようです</div>
+      <button onclick="closeDeniedNotifModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:var(--text-sub);line-height:1.7;margin-bottom:18px">
+      以前「許可しない」を選ばれた場合、恐れ入りますが、お使いの端末のブラウザ設定から、このサイトの通知を手動でオンに切り替えていただく必要があります。<br><br>
+      うまくいかない・やり方が分からない場合は、下記のお問い合わせフォームからご連絡ください。
+    </div>
+    <!-- TODO: 勝中版お問い合わせフォームのURL開設後に差し替え -->
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;font-size:13px;color:var(--blue);font-weight:700;margin-bottom:14px">📋 お問い合わせフォーム</a>
+    <button class="btn btn-primary" onclick="closeDeniedNotifModal()" style="width:100%">
+      分かりました
     </button>
   </div>
 </div>
@@ -1428,50 +1447,86 @@ function loadBoardFromAPI(){
 
 // ===================================================
 // 通知許可バナー
-// 「あとで」を選んだら、以降このバナーは自動では二度と出さない
-// （宗明さんが定期的に案内し、気づいた会員が自分で「設定する」を
-// 押しに来る運用を想定。しつこく出し続けない）。
+// 一度「あとで」にしても、二度と出さないのではなく、しばらく
+// 間隔を空けてから、また自然に目に入るようにする（しつこくしない
+// 程度に、忘れた頃にもう一度思い出してもらう）。
+// ブラウザで「ブロック（denied）」を選んでしまった人にも、同じ
+// 考え方で定期的に気づく機会を作る。ただし、ブロック状態は
+// JavaScriptから直接は解除できないため、その場合は「設定する」を
+// 押しても本物の許可ポップアップは出さず、ブラウザ設定を自分で
+// 開き直す簡単な案内を表示する（うまくいかない場合はお問い合わせ
+// フォームへ誘導）。
 // いきなりブラウザ標準の許可ポップアップは出さず、まずこちらで
-// 用意した説明画面（modal-notif）を経由してから、本物の許可を求める
-// 二段階方式にしている。
+// 用意した説明画面を経由してから、本物の許可を求める二段階方式。
 // ===================================================
-var NOTIF_DISMISS_KEY = 'katsuchu_notif_dismissed';
+var NOTIF_LAST_SHOWN_KEY = 'katsuchu_notif_last_shown';
+var NOTIF_REMIND_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000; // 14日ごとに、また自然に目に入るようにする
 
-function shouldOfferNotifBanner(){
-  try{
-    if(localStorage.getItem(NOTIF_DISMISS_KEY)) return false;
-  }catch(e){ return false; }
-  if(typeof Notification === 'undefined') return false;
-  if(Notification.permission === 'granted' || Notification.permission === 'denied') return false;
-  return true;
+// 'granted'（許可済み）または通知非対応の環境ではnullを返す（バナー不要）。
+// それ以外（'default'＝未回答、'denied'＝拒否済み）は、その状態文字列を返す。
+function getNotifBannerState(){
+  if(typeof Notification === 'undefined') return null;
+  if(Notification.permission === 'granted') return null;
+  return Notification.permission;
+}
+
+function shouldShowNotifBannerNow(){
+  var lastShown;
+  try{ lastShown = parseInt(localStorage.getItem(NOTIF_LAST_SHOWN_KEY) || '0', 10); }catch(e){ return false; }
+  return (Date.now() - lastShown) >= NOTIF_REMIND_INTERVAL_MS;
+}
+
+function recordNotifBannerShown(){
+  try{ localStorage.setItem(NOTIF_LAST_SHOWN_KEY, String(Date.now())); }catch(e){}
 }
 
 function showNotifBannerIfNeeded(){
-  if(shouldOfferNotifBanner()){
-    document.getElementById('notif-banner').style.display = 'flex';
+  var state = getNotifBannerState();
+  if(!state) return;
+  if(!shouldShowNotifBannerNow()) return;
+
+  var banner = document.getElementById('notif-banner');
+  var textEl = banner.querySelector('.notif-banner-text');
+  var btnEl = banner.querySelector('.notif-banner-btn');
+  if(state === 'denied'){
+    textEl.textContent = '通知がまだ届いていないかもしれません';
+    btnEl.textContent = '確認する';
+  } else {
+    textEl.textContent = 'お知らせを見逃さないために、通知をオンにしませんか';
+    btnEl.textContent = '設定する';
   }
+  banner.dataset.state = state;
+  banner.style.display = 'flex';
 }
 
 function dismissNotifBanner(){
   document.getElementById('notif-banner').style.display = 'none';
-  try{ localStorage.setItem(NOTIF_DISMISS_KEY, '1'); }catch(e){}
+  recordNotifBannerShown();
 }
 
 function openNotifModal(){
-  document.getElementById('notif-banner').style.display = 'none';
-  document.getElementById('modal-notif').classList.add('show');
+  var banner = document.getElementById('notif-banner');
+  var state = banner.dataset.state || 'default';
+  banner.style.display = 'none';
+  recordNotifBannerShown();
+
+  if(state === 'denied'){
+    document.getElementById('modal-notif-denied').classList.add('show');
+  } else {
+    document.getElementById('modal-notif').classList.add('show');
+  }
 }
 
-function closeNotifModal(dismissForGood){
+function closeNotifModal(){
   document.getElementById('modal-notif').classList.remove('show');
-  if(dismissForGood){
-    try{ localStorage.setItem(NOTIF_DISMISS_KEY, '1'); }catch(e){}
-  }
+}
+
+function closeDeniedNotifModal(){
+  document.getElementById('modal-notif-denied').classList.remove('show');
 }
 
 function requestNotifPermission(){
   document.getElementById('modal-notif').classList.remove('show');
-  try{ localStorage.setItem(NOTIF_DISMISS_KEY, '1'); }catch(e){}
   if(window.OneSignalDeferred){
     OneSignalDeferred.push(function(OneSignal){
       OneSignal.Notifications.requestPermission().then(function(){
