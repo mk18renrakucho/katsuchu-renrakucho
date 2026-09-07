@@ -448,7 +448,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.4　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif">
@@ -1460,7 +1460,7 @@ function loadBoardFromAPI(){
 // 用意した説明画面を経由してから、本物の許可を求める二段階方式。
 // ===================================================
 var NOTIF_LAST_SHOWN_KEY = 'katsuchu_notif_last_shown';
-var NOTIF_REMIND_INTERVAL_MS = 14 * 24 * 60 * 60 * 1000; // 14日ごとに、また自然に目に入るようにする
+var NOTIF_REMIND_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; // 30日ごとに、また自然に目に入るようにする
 
 // 'granted'（許可済み）または通知非対応の環境ではnullを返す（バナー不要）。
 // それ以外（'default'＝未回答、'denied'＝拒否済み）は、その状態文字列を返す。
