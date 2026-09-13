@@ -31,6 +31,7 @@ h1{font-size:22px;font-weight:700;margin-bottom:6px}
 .branch-btn .icon{font-size:28px;margin-bottom:8px}
 .branch-btn .title{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text)}
 .branch-btn .desc{font-size:12px;color:var(--sub);line-height:1.6}
+.branch-btn-disabled{opacity:.45;cursor:not-allowed}
 .voom-card{background:#f5f0e8;border:1.5px solid var(--accent);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px}
 .voom-card .icon{font-size:26px;flex-shrink:0}
 .voom-card .info{flex:1}
@@ -119,12 +120,12 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <div class="title">メンバー登録する</div>
       <div class="desc">出没レーダーに名前を載せる<br>名前・期・部活・エリアを登録します</div>
     </button>
-    <a class="branch-btn" href="index.html#radar" style="text-decoration:none;color:inherit;display:block">
+    <a class="branch-btn" id="branch-radar" href="index.html#radar" style="text-decoration:none;color:inherit;display:block">
       <div class="icon">📡</div>
       <div class="title">近況を更新する</div>
       <div class="desc">登録情報を確認してから変更できます<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
     </a>
-    <a class="branch-btn" href="index.html#board" style="text-decoration:none;color:inherit;display:block">
+    <a class="branch-btn" id="branch-board" href="index.html#board" style="text-decoration:none;color:inherit;display:block">
       <div class="icon">📌</div>
       <div class="title">お知らせを投稿する</div>
       <div class="desc">イベント・集まりなどテキストのお知らせを投稿する<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
@@ -173,6 +174,9 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <div style="font-size:12px;color:#142c4d;margin-bottom:8px;font-weight:700">🔑 誕生日または確認用の数字（重要）</div>
       <div style="font-size:13px;color:#142c4d;line-height:1.7">
         近況更新・コルクボード投稿時に使用します。<br>忘れずに控えておいてください！
+      </div>
+      <div style="font-size:11px;color:#142c4d;line-height:1.6;margin-top:10px">
+        ※スマホ本体やブラウザを変更された場合は、閲覧のたびに名前と誕生日（確認用の数字）の入力が必要になります
       </div>
       <div style="background:#fff;border:2px solid #1d3f6e;border-radius:8px;padding:12px;margin-top:10px;text-align:center">
         <div style="font-size:11px;color:#7a6f65;margin-bottom:4px">登録した誕生日または確認用の数字</div>
@@ -529,6 +533,25 @@ document.getElementById('pwa-install-btn').addEventListener('click', function(){
 window.addEventListener('appinstalled',function(){hidePwaBanner();showToast('✓ アプリとしてインストールされました');});
 function hidePwaBanner(){document.getElementById('pwa-banner').style.display='none';}
 
+// ===================================================
+// 未登録者（katsuchu_uidが端末に無い人）は、近況更新・お知らせ投稿へ
+// 進めないようにする（index.html側の閲覧ゲートと合わせた対応）
+// ===================================================
+function applyBranchGate(){
+  var uid;
+  try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
+  if(uid) return;
+  ['branch-radar','branch-board'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.classList.add('branch-btn-disabled');
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      showToast('先にメンバー登録をお済ませください');
+    });
+  });
+}
+applyBranchGate();
 
 var hash = window.location.hash;
 if(hash === '#register') goToRegister();
