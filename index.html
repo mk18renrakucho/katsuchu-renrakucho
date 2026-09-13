@@ -56,6 +56,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .btn-primary{background:var(--blue);color:var(--white);border:none}
 .pill{font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--gray);color:var(--text-sub);white-space:nowrap}
 .pill.active{background:var(--blue);color:var(--white);border-color:var(--blue)}
+#access-gate{position:fixed;inset:0;background:var(--white);z-index:9999;display:flex;flex-direction:column;justify-content:center;padding:24px;overflow-y:auto}
+#access-gate .gate-inner{max-width:420px;margin:0 auto;width:100%}
+#access-gate .gate-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+#access-gate .gate-desc{font-size:13px;color:var(--text-sub);line-height:1.7;margin-bottom:20px}
+#access-gate .gate-register-link{display:block;text-align:center;font-size:13px;color:var(--blue);margin-top:14px;text-decoration:none}
 .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;color:var(--white);flex-shrink:0}
 .search-wrap{position:relative;margin-bottom:10px}
 .search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-ter);font-size:15px;pointer-events:none}
@@ -107,6 +112,25 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </style>
 </head>
 <body>
+
+<!-- 閲覧ゲート：登録済みメンバーのみ中身を見られるようにする -->
+<div id="access-gate">
+  <div class="gate-inner">
+    <div class="gate-title">🔑 本人確認</div>
+    <div class="gate-desc">勝中 連絡帳は、登録済みのメンバーのみ閲覧いただけます。<br>登録時のお名前と、誕生日または確認用の数字を入力してください。<br><span style="font-size:12px">※スマホ本体やブラウザを変更された場合は、再度この確認が必要になります</span></div>
+    <div class="card">
+      <input type="text" id="gate_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:8px">
+      <input type="text" id="gate_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
+      <div id="gate_period_wrap" style="display:none;margin-bottom:10px">
+        <input type="text" id="gate_period" placeholder="期（同姓同名の方がいる場合）">
+      </div>
+      <div id="gate_err" style="font-size:12px;color:#a32d2d;margin-bottom:10px;display:none"></div>
+      <button class="btn btn-primary" id="gate_btn" onclick="submitGateVerify()" style="width:100%">確認する</button>
+    </div>
+    <a class="gate-register-link" href="register.html">まだ登録がお済みでない方はこちら</a>
+  </div>
+</div>
+
 <div class="app">
 
 <!-- PWAインストールバナー -->
@@ -1655,16 +1679,69 @@ function showFavLoggedOut(){
   document.getElementById("fv_err").style.display="none";
 }
 
-var hash=window.location.hash;
-if(hash==="#board")go("b");
-else if(hash==="#club")go("c");
-else if(hash==="#gallery")go("g");
-else if(hash==="#fav")go("f");
-else if(hash==="#anshin")go("a");
-else if(hash==="#radar")go("r");
-else go("r");
+function initApp(){
+  var hash=window.location.hash;
+  if(hash==="#board")go("b");
+  else if(hash==="#club")go("c");
+  else if(hash==="#gallery")go("g");
+  else if(hash==="#fav")go("f");
+  else if(hash==="#anshin")go("a");
+  else if(hash==="#radar")go("r");
+  else go("r");
 
-loadFromAPI();
+  loadFromAPI();
+}
+
+// ===================================================
+// 閲覧ゲート：katsuchu_uid（登録済みの証）が端末に無ければ
+// 中身を見せず、名前＋誕生日（確認用の数字）での本人確認を求める
+// ===================================================
+function checkAccessGate(){
+  var uid;
+  try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
+  if(uid){
+    document.getElementById('access-gate').style.display = 'none';
+    initApp();
+  }
+  // uidが無い場合はゲート画面を表示したまま待機（何も初期化しない）
+}
+
+function submitGateVerify(){
+  var name = (document.getElementById('gate_name').value||'').trim();
+  var bd = (document.getElementById('gate_bd').value||'').trim();
+  var period = (document.getElementById('gate_period').value||'').trim();
+  var errEl = document.getElementById('gate_err');
+  errEl.style.display = 'none';
+  if(!name){ errEl.textContent='お名前を入力してください'; errEl.style.display='block'; return; }
+  if(!bd || !/^[0-9]{4}$/.test(bd)){ errEl.textContent='誕生日または確認用の数字を4桁で入力してください'; errEl.style.display='block'; return; }
+
+  var btn = document.getElementById('gate_btn');
+  btn.disabled = true; btn.textContent = '確認中...';
+  gasGet({action:'verify', name:name, birthday:bd, period:period}, function(res){
+    btn.disabled = false; btn.textContent = '確認する';
+    if(res && res.locked){
+      errEl.textContent = res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(res && res.found && !res.multiple && res.uid){
+      try{ localStorage.setItem('katsuchu_uid', res.uid); }catch(e){}
+      document.getElementById('access-gate').style.display = 'none';
+      initApp();
+      return;
+    }
+    if(res && res.multiple){
+      errEl.textContent = '同じ名前・誕生日の方が複数います。期を入力してもう一度お試しください。';
+      errEl.style.display = 'block';
+      document.getElementById('gate_period_wrap').style.display = 'block';
+      return;
+    }
+    errEl.textContent = '名前または誕生日（確認用の数字）が一致しません。まだ登録がお済みでない場合は、下の「まだ登録がお済みでない方はこちら」からご登録ください。';
+    errEl.style.display = 'block';
+  });
+}
+
+checkAccessGate();
 </script>
 </body>
 </html>
