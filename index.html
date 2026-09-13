@@ -379,7 +379,34 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">現在のエリア</div>
         <input type="text" id="ue" placeholder="例：松山・関東・大阪" style="margin-bottom:12px">
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">ひとこと近況</div>
-        <input type="text" id="un" placeholder="例：〇〇に住んでます、最近は畑仕事にハマってます、など" style="margin-bottom:10px">
+        <input type="text" id="un" placeholder="例：〇〇に住んでます、最近は畑仕事にハマってます、など" style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">部活<span style="font-weight:400">（変更したい場合のみ選択）</span></div>
+        <select id="uc" style="margin-bottom:12px">
+          <option value="">変更しない</option>
+          <optgroup label="運動部">
+            <option>軟式野球部</option><option>サッカー部</option><option>女子ソフトボール部</option>
+            <option>剣道部</option><option>男子卓球部</option><option>女子卓球部</option>
+            <option>男子ソフトテニス部</option><option>女子ソフトテニス部</option><option>陸上競技部</option>
+            <option>女子ハンドボール部</option><option>女子バレーボール部</option><option>男子バスケットボール部</option>
+            <option>女子バスケットボール部</option>
+          </optgroup>
+          <optgroup label="文化部">
+            <option>放送部</option><option>吹奏楽部</option><option>美術部</option>
+            <option>茶道部</option><option>園芸部</option>
+          </optgroup>
+          <option>その他</option>
+        </select>
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">表示名の変更（任意）</div>
+        <div style="display:flex;gap:16px;margin-bottom:8px;font-size:13px;color:var(--text)">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="u_nick_type" value="real" checked onchange="setURadioValue('u_nick_type','real')">本名をそのまま表示する</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="u_nick_type" value="nick" onchange="setURadioValue('u_nick_type','nick')">ニックネームで表示する</label>
+        </div>
+        <div id="u_nick_wrap" style="display:none;margin-bottom:12px">
+          <input type="text" id="u_nickname" placeholder="例：むねあき・ムネアキン など">
+          <p style="font-size:11px;color:var(--text-ter);margin-top:4px">出没レーダー・コルクボードでニックネームが表示されます</p>
+        </div>
+        <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">趣味・キーワード（任意）</div>
+        <input type="text" id="uh" placeholder="例：サイクリング・落語・読書" style="margin-bottom:12px">
         <div id="u_err2" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
         <button class="btn btn-primary" onclick="doUpdate()" style="width:100%" id="u_btn">
           <i class="ti ti-check" style="margin-right:4px"></i>更新する
@@ -448,7 +475,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.4　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.7　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif">
@@ -648,6 +675,19 @@ function backToUStep1(){
   showUStep(1);
 }
 
+function setURadioValue(name, val){
+  document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){
+    r.checked = (r.value === val);
+  });
+  document.getElementById('u_nick_wrap').style.display = (val==='nick') ? 'block' : 'none';
+}
+
+function getUNickname(typeName, inputId){
+  var type=(document.querySelector('input[name="'+typeName+'"]:checked')||{}).value;
+  if(type==='nick') return document.getElementById(inputId).value.trim();
+  return '';
+}
+
 function doVerifyUpdate(){
   var m=M.find(function(x){return x.id===selId;});
   var bd=(document.getElementById("u_bd").value||"").trim();
@@ -667,6 +707,15 @@ function doVerifyUpdate(){
       document.getElementById("ud").value=res.homecoming||"";
       document.getElementById("ue").value=res.area||"";
       document.getElementById("un").value=res.note||"";
+      document.getElementById("uc").value=res.club||"";
+      document.getElementById("uh").value=res.hobby||"";
+      if(res.nickname){
+        setURadioValue('u_nick_type','nick');
+        document.getElementById('u_nickname').value=res.nickname;
+      } else {
+        setURadioValue('u_nick_type','real');
+        document.getElementById('u_nickname').value='';
+      }
       document.getElementById("u_err2").style.display="none";
       showUStep(2);
     } else {
@@ -689,7 +738,10 @@ function doUpdate(){
     area:document.getElementById("ue").value.trim(),
     status:document.getElementById("us").value,
     homecoming:document.getElementById("ud").value.trim(),
-    note:document.getElementById("un").value.trim()
+    note:document.getElementById("un").value.trim(),
+    club:document.getElementById("uc").value,
+    hobby:document.getElementById("uh").value.trim(),
+    nickname:getUNickname('u_nick_type','u_nickname')
   },function(res){
     btn.disabled=false;btn.textContent="更新する";
     if(res&&res.success){
