@@ -39,6 +39,13 @@ h1{font-size:22px;font-weight:700;margin-bottom:6px}
 .voom-link{font-size:12px;background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:700;white-space:nowrap;flex-shrink:0}
 .form-section{display:none}
 .form-section.active{display:block}
+
+/* PWAインストールバナー */
+.pwa-banner{background:linear-gradient(135deg,#1d3f6e,#2d5a9e);color:#fff;padding:12px 14px;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;display:none;margin-bottom:16px}
+.pwa-banner-icon{font-size:24px;flex-shrink:0}
+.pwa-banner-text{flex:1}
+.pwa-banner-btn{background:#fff;color:#1d3f6e;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.pwa-banner-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
 .back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);background:none;border:none;cursor:pointer;padding:0;margin-bottom:20px;font-family:inherit}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 24px;box-shadow:var(--shadow)}
 .section-label{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--sub);text-transform:uppercase;margin-bottom:16px}
@@ -76,8 +83,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
 .dup-box{background:#E8EEF6;border:2px solid var(--accent);border-radius:12px;padding:20px;margin-top:16px;display:none}
 .dup-box .dup-title{font-size:14px;font-weight:700;color:var(--accent-dark);margin-bottom:10px}
 .dup-box .dup-desc{font-size:12px;color:#142c4d;line-height:1.7;margin-bottom:14px}
-.radar-step{display:none}
-.radar-step.active{display:block}
 .current-info-card{background:#E8EEF6;border:1px solid var(--accent);border-radius:10px;padding:16px;margin-bottom:20px}
 .current-info-card .ci-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--sub);margin-bottom:10px}
 .current-info-row{display:flex;gap:8px;font-size:13px;margin-bottom:6px}
@@ -114,16 +119,16 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <div class="title">メンバー登録する</div>
       <div class="desc">出没レーダーに名前を載せる<br>名前・期・部活・エリアを登録します</div>
     </button>
-    <button class="branch-btn" onclick="showSection('board')">
+    <a class="branch-btn" href="index.html#board" style="text-decoration:none;color:inherit;display:block">
       <div class="icon">📌</div>
       <div class="title">お知らせを投稿する</div>
       <div class="desc">イベント・集まりなどテキストのお知らせを投稿する<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
-    </button>
-    <button class="branch-btn" onclick="showSection('radar')">
+    </a>
+    <a class="branch-btn" href="index.html#radar" style="text-decoration:none;color:inherit;display:block">
       <div class="icon">📡</div>
       <div class="title">近況を更新する</div>
       <div class="desc">登録情報を確認してから変更できます<br>名前＋誕生日（または確認用の数字）で本人確認します</div>
-    </button>
+    </a>
   </div>
 </div>
 
@@ -157,6 +162,12 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     <div style="text-align:center;padding:10px 0 20px">
       <div style="font-size:48px;margin-bottom:12px">🎉</div>
       <div style="font-size:15px;font-weight:700;margin-bottom:20px">登録が完了しました</div>
+    </div>
+    <div class="pwa-banner" id="pwa-banner">
+      <div class="pwa-banner-icon">📱</div>
+      <div class="pwa-banner-text">ホーム画面に追加するとアプリとして使えます</div>
+      <button class="pwa-banner-btn" id="pwa-install-btn">追加する</button>
+      <button class="pwa-banner-close" onclick="hidePwaBanner()">✕</button>
     </div>
     <div style="background:#E8EEF6;border:1px solid #1d3f6e;border-radius:10px;padding:16px;margin-bottom:16px">
       <div style="font-size:12px;color:#142c4d;margin-bottom:8px;font-weight:700">🔑 誕生日または確認用の数字（重要）</div>
@@ -292,177 +303,9 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
   </div>
 </div>
 
-<!-- 【B】コルクボード投稿 -->
-<div class="form-section" id="board">
-  <button class="back-btn" onclick="showTop()">← 戻る</button>
-  <div class="header">
-    <div class="badge">📌 コルクボード</div>
-    <h1>お知らせを投稿する</h1>
-    <p class="sub">同窓生全体へのテキストお知らせを書き込む</p>
-  </div>
-  <div class="card">
-    <p class="section-label">本人確認</p>
-    <div class="field" id="bf-name">
-      <label>お名前<span class="req">*</span></label>
-      <input type="text" id="b_name" placeholder="例：佐々木 宗明">
-      <p class="error-msg">お名前を入力してください</p>
-    </div>
-    <div class="field" id="bf-bd">
-      <label>誕生日または確認用の数字<span class="req">*</span><span class="hint">4桁　例：3月15日 → 0315</span></label>
-      <input type="text" id="b_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-      <p class="error-msg">誕生日または確認用の数字を4桁で入力してください（例：0315）</p>
-    </div>
-    <div class="field">
-      <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
-      <input type="text" id="b_period" placeholder="例：32期">
-    </div>
-    <div class="divider"></div>
-    <p class="section-label">投稿内容</p>
-    <div class="field">
-      <label>カテゴリ<span class="req">*</span></label>
-      <select id="b_cat">
-        <option value="告知">📢 告知（イベント・集まり）</option>
-        <option value="近況">💬 近況（ちょっとした報告）</option>
-      </select>
-    </div>
-    <div class="field" id="bf-title">
-      <label>タイトル<span class="req">*</span></label>
-      <input type="text" id="b_title" placeholder="例：関東同窓会 秋の集まり">
-      <p class="error-msg">タイトルを入力してください</p>
-    </div>
-    <div class="field" id="bf-detail">
-      <label>詳細<span class="req">*</span><span class="hint">日時・場所・メッセージなど</span></label>
-      <textarea id="b_detail" placeholder="日時・場所・内容などを書いてください"></textarea>
-      <p class="error-msg">詳細を入力してください</p>
-    </div>
-    <div class="field">
-      <label>参考URL<span class="hint">任意</span></label>
-      <input type="text" id="b_url" placeholder="https://...">
-    </div>
-    <div class="err-box" id="b_err"></div>
-    <button class="submit-btn" id="b_btn" onclick="submitBoard()">投稿する</button>
-  </div>
-</div>
-
-<!-- 【C】近況更新（2ステップ） -->
-<div class="form-section" id="radar">
-  <button class="back-btn" onclick="showTop()">← 戻る</button>
-  <div class="header">
-    <div class="badge">📡 出没レーダー</div>
-    <h1>近況を更新する</h1>
-    <p class="sub">まず本人確認をしてから更新します</p>
-  </div>
-
-  <!-- ステップ1：本人確認 -->
-  <div class="radar-step active" id="radar-step1">
-    <div class="card">
-      <div class="notice">🔑 登録時の名前と、誕生日または確認用の数字を入力してください。現在の登録情報を表示します。</div>
-      <div class="field" id="rf-name">
-        <label>お名前（漢字）<span class="req">*</span></label>
-        <input type="text" id="r_name" placeholder="例：佐々木 宗明">
-        <p class="error-msg">お名前を入力してください</p>
-      </div>
-      <div class="field" id="rf-bd">
-        <label>誕生日または確認用の数字<span class="req">*</span><span class="hint">4桁　例：3月15日 → 0315</span></label>
-        <input type="text" id="r_bd" placeholder="0315" maxlength="4" inputmode="numeric">
-        <p class="error-msg">誕生日または確認用の数字を4桁で入力してください（例：0315）</p>
-      </div>
-      <div class="field">
-        <label>期<span class="hint">任意・同姓同名の方がいる場合に使用</span></label>
-        <input type="text" id="r_period_check" placeholder="例：32期">
-      </div>
-      <div class="err-box" id="r_check_err"></div>
-      <button class="submit-btn" id="r_check_btn" onclick="checkRadar()">確認する</button>
-    </div>
-  </div>
-
-  <!-- ステップ2：現在の情報を表示して更新 -->
-  <div class="radar-step" id="radar-step2">
-    <div class="card">
-      <div class="current-info-card">
-        <div class="ci-title">📋 現在の登録情報</div>
-        <div class="current-info-row"><span class="ci-label">期</span><span class="ci-val" id="ci_period">-</span></div>
-        <div class="current-info-row"><span class="ci-label">部活</span><span class="ci-val" id="ci_club">-</span></div>
-        <div class="current-info-row"><span class="ci-label">エリア</span><span class="ci-val" id="ci_area">-</span></div>
-        <div class="current-info-row"><span class="ci-label">状態</span><span class="ci-val" id="ci_status">-</span></div>
-        <div class="current-info-row"><span class="ci-label">帰省期間</span><span class="ci-val" id="ci_homecoming">-</span></div>
-        <div class="current-info-row"><span class="ci-label">趣味</span><span class="ci-val" id="ci_hobby">-</span></div>
-        <div class="current-info-row"><span class="ci-label">ひとこと</span><span class="ci-val" id="ci_note">-</span></div>
-        <div class="current-info-row"><span class="ci-label">表示名</span><span class="ci-val" id="ci_nickname">-</span></div>
-      </div>
-      <p class="section-label">変更する内容</p>
-      <div class="field" id="rf-area">
-        <label>現在のエリア<span class="req">*</span></label>
-        <select id="r_area">
-          <option value="">選択してください</option>
-          <option>松山</option><option>関東</option><option>大阪</option><option>名古屋</option>
-          <option>福岡</option><option>広島</option><option>東海</option><option>九州</option>
-          <option>北海道・東北</option><option>海外</option><option>その他</option>
-        </select>
-        <p class="error-msg">エリアを選択してください</p>
-      </div>
-      <div class="field" id="rf-status">
-        <label>現在の状態<span class="req">*</span></label>
-        <div class="radio-group">
-          <label class="radio-item"><input type="radio" name="r_st" value="在住（松山在住）"><span>松山に在住</span></label>
-          <label class="radio-item"><input type="radio" name="r_st" value="松山以外に在住"><span>松山以外に在住</span></label>
-          <label class="radio-item"><input type="radio" name="r_st" value="帰省予定"><span>帰省予定あり</span></label>
-          <label class="radio-item"><input type="radio" name="r_st" value="帰省中"><span>帰省中</span></label>
-        </div>
-        <p class="error-msg">状態を選択してください</p>
-      </div>
-      <div class="field">
-        <label>帰省期間<span class="hint">任意　例：8/13〜8/17</span></label>
-        <input type="text" id="r_hc" placeholder="例：8/13〜8/17">
-      </div>
-      <div class="divider"></div>
-      <p class="section-label">プロフィール変更（任意）</p>
-      <div class="field">
-        <label>部活<span class="hint">変更したい場合のみ選択</span></label>
-        <select id="r_club">
-          <option value="">変更しない</option>
-          <optgroup label="運動部">
-            <option>軟式野球部</option><option>サッカー部</option><option>女子ソフトボール部</option>
-            <option>剣道部</option><option>男子卓球部</option><option>女子卓球部</option>
-            <option>男子ソフトテニス部</option><option>女子ソフトテニス部</option><option>陸上競技部</option>
-            <option>女子ハンドボール部</option><option>女子バレーボール部</option><option>男子バスケットボール部</option>
-            <option>女子バスケットボール部</option>
-          </optgroup>
-          <optgroup label="文化部">
-            <option>放送部</option><option>吹奏楽部</option><option>美術部</option>
-            <option>茶道部</option><option>園芸部</option>
-          </optgroup>
-          <option>その他</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>表示名の変更<span class="hint">任意</span></label>
-        <div class="radio-group">
-          <label class="radio-item selected"><input type="radio" name="r_nick_type" value="real" checked><span>本名をそのまま表示する</span></label>
-          <label class="radio-item"><input type="radio" name="r_nick_type" value="nick"><span>ニックネームで表示する</span></label>
-        </div>
-        <div class="nick-input-wrap" id="r_nick_wrap">
-          <input type="text" id="r_nickname" placeholder="例：むねあき・ムネアキン など" style="margin-top:8px">
-          <p style="font-size:11px;color:var(--sub);margin-top:4px">出没レーダー・コルクボードでニックネームが表示されます</p>
-        </div>
-      </div>
-      <div class="field">
-        <label>趣味・キーワード<span class="hint">任意</span></label>
-        <input type="text" id="r_hobby" placeholder="例：サイクリング・落語・読書">
-      </div>
-      <div class="field">
-        <label>ひとこと近況<span class="hint">任意</span></label>
-        <textarea id="r_note" placeholder="近況をひとことどうぞ"></textarea>
-      </div>
-      <div class="err-box" id="r_err"></div>
-      <button class="submit-btn" id="r_btn" onclick="submitRadar()">近況を更新する</button>
-      <button class="submit-btn-sub" onclick="backToStep1()">← 入力し直す</button>
-    </div>
-  </div>
-</div>
 
 </div>
-<div class="footer">勝中 連絡帳 v1.4　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.7　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -500,7 +343,6 @@ function showSection(id) {
 function showTop() {
   document.getElementById('top').style.display = '';
   document.querySelectorAll('.form-section').forEach(function(el){ el.classList.remove('active'); });
-  backToStep1();
   window.scrollTo(0,0);
 }
 
@@ -517,13 +359,6 @@ document.querySelectorAll('input[name="reg_nick_type"]').forEach(function(r){
     if(r.value === 'real') document.getElementById('reg_nickname').value = '';
   });
 });
-document.querySelectorAll('input[name="r_nick_type"]').forEach(function(r){
-  r.addEventListener('change', function(){
-    document.getElementById('r_nick_wrap').classList.toggle('show', r.value === 'nick');
-    if(r.value === 'real') document.getElementById('r_nickname').value = '';
-  });
-});
-
 function reqField(fieldId, val) {
   var el = document.getElementById(fieldId);
   if(!val){ el.classList.add('has-error'); return false; }
@@ -640,139 +475,6 @@ function submitRegisterForce() {
 }
 
 // ===== 近況更新 ステップ1 =====
-function checkRadar() {
-  var ok = true;
-  ok = reqField('rf-name', document.getElementById('r_name').value.trim()) && ok;
-  ok = reqBirthday('rf-bd', document.getElementById('r_bd').value.trim()) && ok;
-  if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
-
-  document.getElementById('r_check_err').style.display = 'none';
-  setLoading(true,'r_check_btn');
-
-  send({
-    action:'verify',
-    name:document.getElementById('r_name').value.trim(),
-    birthday:document.getElementById('r_bd').value.trim(),
-    period:document.getElementById('r_period_check').value.trim(),
-  }, function(res){
-    setLoading(false,'r_check_btn');
-    if(res && res.locked){
-      showErr('r_check_err', res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。');
-      return;
-    }
-    if(!res || !res.found){
-      showErr('r_check_err','名前または誕生日（確認用の数字）が一致しません。登録時と同じ情報を入力してください。');
-      return;
-    }
-    if(res.multiple){
-      showErr('r_check_err','同じ名前・誕生日（確認用の数字）の方が複数います。期の欄に期を入力してもう一度お試しください。');
-      return;
-    }
-    document.getElementById('ci_period').textContent     = res.period     || '-';
-    document.getElementById('ci_club').textContent       = res.club       || '-';
-    document.getElementById('ci_area').textContent       = res.area       || '-';
-    document.getElementById('ci_status').textContent     = res.status     || '-';
-    document.getElementById('ci_homecoming').textContent = res.homecoming || '-';
-    document.getElementById('ci_hobby').textContent      = res.hobby      || '-';
-    document.getElementById('ci_note').textContent       = res.note       || '-';
-    document.getElementById('ci_nickname').textContent   = res.nickname   || '（本名表示）';
-
-    setSelectValue('r_area', res.area);
-    setRadioValue('r_st', res.status);
-    document.getElementById('r_hc').value    = res.homecoming || '';
-    document.getElementById('r_hobby').value = res.hobby      || '';
-    document.getElementById('r_note').value  = res.note       || '';
-
-    if(res.nickname){
-      setRadioValue('r_nick_type', 'nick');
-      document.getElementById('r_nick_wrap').classList.add('show');
-      document.getElementById('r_nickname').value = res.nickname;
-    } else {
-      setRadioValue('r_nick_type', 'real');
-      document.getElementById('r_nick_wrap').classList.remove('show');
-      document.getElementById('r_nickname').value = '';
-    }
-
-    document.getElementById('radar-step1').classList.remove('active');
-    document.getElementById('radar-step2').classList.add('active');
-    window.scrollTo(0,0);
-  });
-}
-
-function backToStep1() {
-  document.getElementById('radar-step1').classList.add('active');
-  document.getElementById('radar-step2').classList.remove('active');
-}
-
-function setSelectValue(id, val) {
-  var sel = document.getElementById(id);
-  for(var i=0;i<sel.options.length;i++){
-    if(sel.options[i].value === val){ sel.selectedIndex = i; break; }
-  }
-}
-function setRadioValue(name, val) {
-  document.querySelectorAll('input[name="'+name+'"]').forEach(function(r){
-    r.checked = (r.value === val);
-    r.closest('.radio-item').classList.toggle('selected', r.checked);
-  });
-}
-
-// ===== 近況更新 ステップ2 =====
-function submitRadar() {
-  var ok = true;
-  ok = reqField('rf-area',   document.getElementById('r_area').value) && ok;
-  ok = reqField('rf-status', (document.querySelector('input[name="r_st"]:checked')||{}).value||'') && ok;
-  if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
-
-  setLoading(true,'r_btn');
-  send({
-    action:'updateStatus',
-    name:document.getElementById('r_name').value.trim(),
-    birthday:document.getElementById('r_bd').value.trim(),
-    period:document.getElementById('r_period_check').value.trim(),
-    area:document.getElementById('r_area').value,
-    status:document.querySelector('input[name="r_st"]:checked').value,
-    homecoming:document.getElementById('r_hc').value.trim(),
-    club:document.getElementById('r_club').value,
-    hobby:document.getElementById('r_hobby').value.trim(),
-    note:document.getElementById('r_note').value.trim(),
-    nickname:getNickname('r_nick_type','r_nickname'),
-  }, function(res){
-    setLoading(false,'r_btn');
-    if(res && res.success){
-      if(res.uid){ try{ localStorage.setItem('katsuchu_uid', res.uid); }catch(e){} }
-      showToast('✓ 近況を更新しました！'); setTimeout(showTop, 1500);
-    }
-    else { showErr('r_err', (res && res.error) || '更新に失敗しました。もう一度お試しください。'); }
-  });
-}
-
-// ===== コルクボード =====
-function submitBoard() {
-  var ok = true;
-  ok = reqField('bf-name',   document.getElementById('b_name').value.trim()) && ok;
-  ok = reqBirthday('bf-bd',  document.getElementById('b_bd').value.trim()) && ok;
-  ok = reqField('bf-title',  document.getElementById('b_title').value.trim()) && ok;
-  ok = reqField('bf-detail', document.getElementById('b_detail').value.trim()) && ok;
-  if(!ok){ document.querySelector('.has-error').scrollIntoView({behavior:'smooth',block:'center'}); return; }
-  setLoading(true,'b_btn');
-  send({
-    action:'postBoard',
-    name:document.getElementById('b_name').value.trim(),
-    birthday:document.getElementById('b_bd').value.trim(),
-    period:document.getElementById('b_period').value.trim(),
-    cat:document.getElementById('b_cat').value,
-    title:document.getElementById('b_title').value.trim(),
-    detail:document.getElementById('b_detail').value.trim(),
-    url:document.getElementById('b_url').value.trim(),
-  }, function(res){
-    setLoading(false,'b_btn');
-    if(res && res.success){ showToast('✓ 投稿しました！'); setTimeout(showTop, 1500); }
-    else if(res && res.multiple){ showErr('b_err', '同じ名前・誕生日（確認用の数字）の方が複数います。期の欄に期を入力してもう一度お試しください。'); }
-    else { showErr('b_err', (res && res.error) || '名前または誕生日（確認用の数字）が一致しません。'); }
-  });
-}
-
 function send(payload, callback) {
   document.getElementById('overlay').classList.add('show');
   var params = Object.keys(payload).map(function(k){
@@ -789,10 +491,7 @@ function setLoading(on, btnId) {
   btn.disabled = on;
   if(on) btn.textContent = '送信中...';
   else {
-    if(btnId==='reg_btn')     btn.textContent = 'メンバー登録する';
-    if(btnId==='r_check_btn') btn.textContent = '確認する';
-    if(btnId==='r_btn')       btn.textContent = '近況を更新する';
-    if(btnId==='b_btn')       btn.textContent = '投稿する';
+    if(btnId==='reg_btn') btn.textContent = 'メンバー登録する';
   }
 }
 function showErr(id, msg) {
@@ -808,10 +507,33 @@ function showToast(msg){
   setTimeout(function(){ t.classList.remove('show'); }, 3500);
 }
 
+// PWA（登録完了画面でのみバナー表示。#doneが非表示の間は親要素側で隠れる）
+var deferredPrompt = null;
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
+  });
+}
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('pwa-banner').style.display='flex';
+});
+document.getElementById('pwa-install-btn').addEventListener('click', function(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(result){
+    if(result.outcome==='accepted')showToast('📱 ホーム画面に追加しました！');
+    deferredPrompt=null;hidePwaBanner();
+  });
+});
+window.addEventListener('appinstalled',function(){hidePwaBanner();showToast('✓ アプリとしてインストールされました');});
+function hidePwaBanner(){document.getElementById('pwa-banner').style.display='none';}
+
+
 var hash = window.location.hash;
 if(hash === '#register') goToRegister();
-else if(hash === '#radar') showSection('radar');
-else if(hash === '#board') showSection('board');
+else if(hash === '#radar') location.replace('index.html#radar');
+else if(hash === '#board') location.replace('index.html#board');
 </script>
 </body>
 </html>
