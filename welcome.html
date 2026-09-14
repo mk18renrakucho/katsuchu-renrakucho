@@ -131,6 +131,9 @@ input[type=text]:focus{border-color:var(--accent)}
         <span>上記6項目の利用規約に同意します</span>
       </label>
       <div class="choices">
+        <a class="btn-web" id="index-btn" href="index.html" style="display:none">
+          📖 連絡帳を開く（登録済みの方）
+        </a>
         <a class="btn-web" id="web-btn" href="register.html" data-disabled="true" onclick="return false;">
           📲 このままWebで登録する
         </a>
@@ -218,6 +221,29 @@ function check(){
   document.getElementById('q-input').value = '';
   document.getElementById('q-input').focus();
 }
+
+// ===================================================
+// 再訪問時のスキップ処理
+// 既に登録済み（katsuchu_uidあり）なら、welcomeを経由せず直接index.htmlへ。
+// クイズだけ合格済み（未登録）なら、クイズ画面を飛ばして利用規約画面から始める。
+// ===================================================
+(function(){
+  var uid = null, quizPassed = null, termsAgreed = null;
+  try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){}
+  try{ quizPassed = localStorage.getItem('katsuchu_quiz_passed_at'); }catch(e){}
+  try{ termsAgreed = localStorage.getItem('katsuchu_terms_agreed_at'); }catch(e){}
+
+  if(uid || quizPassed){
+    show('sc-ok');
+    if(termsAgreed){
+      document.getElementById('agree-check').checked = true;
+      toggleWebBtn();
+    }
+  }
+  if(uid){
+    document.getElementById('index-btn').style.display = 'flex';
+  }
+})();
 </script>
 </body>
 </html>
