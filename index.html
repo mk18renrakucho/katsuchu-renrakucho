@@ -558,6 +558,17 @@ fetch('config.json')
 var AC=["#1d3f6e","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
 var API_URL="https://script.google.com/macros/s/AKfycbzJMZoGWMNfQ-8riJvJycnyoT6VzCdxL68jrf_Keiqp3VjLlM2_VJDqZgJJNl-lpjR3qQ/exec";
 
+// 全角数字を半角に変換（日本語入力で全角のまま数字を打ってしまうケースに対応）
+function toHalfWidthDigits(s){
+  return (s||'').replace(/[０-９]/g, function(c){
+    return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+  });
+}
+function normalizeDigitsField(inputId){
+  var el = document.getElementById(inputId);
+  if(el) el.value = toHalfWidthDigits(el.value);
+}
+
 function gasGet(params,cb){
   document.getElementById("overlay").classList.add("show");
   var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]||"");}).join("&");
@@ -709,6 +720,7 @@ function getUNickname(typeName, inputId){
 }
 
 function doVerifyUpdate(){
+  normalizeDigitsField('u_bd');
   var m=M.find(function(x){return x.id===selId;});
   var bd=(document.getElementById("u_bd").value||"").trim();
   var errEl=document.getElementById("u_err1");
@@ -805,6 +817,7 @@ function backToBStep1(){
 }
 
 function doVerifyBoard(){
+  normalizeDigitsField('b_bd');
   var uid=getMyUid();
   var bd=(document.getElementById("b_bd").value||"").trim();
   var errEl=document.getElementById("b_err1");
@@ -1167,6 +1180,7 @@ function compressImageFile(file, maxDim, quality){
 }
 
 function uploadGalleryPhoto(){
+  normalizeDigitsField('g_code');
   var uid = getMyUid();
   var code = (document.getElementById('g_code').value||'').trim();
   var fileInput = document.getElementById('g_file');
@@ -1333,6 +1347,7 @@ function loadAnnounceComments(id){
 }
 
 function postAnnounceComment(){
+  normalizeDigitsField('an_c_bd');
   var uid = getMyUid();
   var bd = (document.getElementById('an_c_bd').value||'').trim();
   var content = (document.getElementById('an_c_content').value||'').trim();
@@ -1622,6 +1637,7 @@ function hidePwaBanner(){document.getElementById('pwa-banner').style.display='no
 
 // お気に入りログイン
 function favLogin(){
+  normalizeDigitsField('fv_bd');
   var uid=getMyUid();
   var bd=(document.getElementById("fv_bd").value||"").trim();
   var errEl=document.getElementById("fv_err");
@@ -1689,6 +1705,7 @@ function checkAccessGate(){
 }
 
 function submitGateVerify(){
+  normalizeDigitsField('gate_bd');
   var name = (document.getElementById('gate_name').value||'').trim();
   var bd = (document.getElementById('gate_bd').value||'').trim();
   var period = (document.getElementById('gate_period').value||'').trim();
