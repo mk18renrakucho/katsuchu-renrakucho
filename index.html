@@ -572,7 +572,8 @@ function normalizeDigitsField(inputId){
 function gasGet(params,cb){
   document.getElementById("overlay").classList.add("show");
   var qs=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]||"");}).join("&");
-  fetch(API_URL+"?"+qs)
+  qs += (qs?"&":"") + "_ts=" + Date.now();
+  fetch(API_URL+"?"+qs, {cache:"no-store"})
     .then(function(r){return r.json();})
     .then(function(d){document.getElementById("overlay").classList.remove("show");cb(d);})
     .catch(function(){document.getElementById("overlay").classList.remove("show");cb({success:false,error:"通信エラー"});});
@@ -1004,7 +1005,7 @@ function loadGalleryFromAPI(){
   document.getElementById('g_grid').innerHTML =
     '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
 
-  fetch(API_URL + '?action=getGallery&uid=' + encodeURIComponent(uid))
+  fetch(API_URL + '?action=getGallery&uid=' + encodeURIComponent(uid) + '&_ts=' + Date.now(), {cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(res){
       if(!res || !res.success){
@@ -1110,7 +1111,7 @@ function openGalleryLightbox(photoId){
   overlay.addEventListener('click', function(e){ if(e.target === overlay) closeGalleryLightbox(); });
 
   var uid = getMyUid();
-  fetch(API_URL + '?action=getPhotoFull&uid=' + encodeURIComponent(uid) + '&photoId=' + encodeURIComponent(photoId))
+  fetch(API_URL + '?action=getPhotoFull&uid=' + encodeURIComponent(uid) + '&photoId=' + encodeURIComponent(photoId) + '&_ts=' + Date.now(), {cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(res){
       var body = document.getElementById('gl-body');
@@ -1480,7 +1481,7 @@ function loadFromAPI(){
     }
   }
 
-  fetch(API_URL)
+  fetch(API_URL+"?_ts="+Date.now(), {cache:"no-store"})
     .then(function(r){return r.json();})
     .then(function(data){
       M=data.filter(function(d){return d.name;}).map(function(d,i){
@@ -1508,7 +1509,7 @@ function loadBoardFromAPI(){
   if(P.length===0){
     document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
   }
-  fetch(API_URL+"?action=getBoard")
+  fetch(API_URL+"?action=getBoard&_ts="+Date.now(), {cache:"no-store"})
     .then(function(r){return r.json();})
     .then(function(data){P=Array.isArray(data)?data:[];renderP();})
     .catch(function(){
