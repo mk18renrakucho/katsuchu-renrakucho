@@ -210,7 +210,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <div class="field" id="reg-period">
       <label>期<span class="req">*</span><span class="hint">例：32期</span></label>
-      <input type="text" id="reg_period" placeholder="例：32期" oninput="this.dataset.fromCalc=''">
+      <input type="text" id="reg_period" placeholder="例：32期" oninput="this.dataset.fromCalc=''" onblur="normalizePeriodField('reg_period')">
       <p class="error-msg">期を入力してください</p>
       <div style="margin-top:8px;background:var(--accent-light);border-radius:8px;padding:10px 12px">
         <div style="font-size:12px;color:#142c4d;font-weight:700;margin-bottom:6px">🎂 生まれた年から期を調べる</div>
@@ -229,6 +229,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
       <label>部活<span class="req">*</span></label>
       <select id="reg_club">
         <option value="">選択してください</option>
+        <option>帰宅部</option>
         <optgroup label="運動部">
           <option>軟式野球部</option><option>サッカー部</option><option>女子ソフトボール部</option>
           <option>剣道部</option><option>男子卓球部</option><option>女子卓球部</option>
@@ -374,6 +375,13 @@ function reqBirthday(fieldId, val) {
   el.classList.remove('has-error'); return true;
 }
 
+// 「期」欄：数字だけが入力された場合は自動で「期」を補う（例：32 → 32期）
+function normalizePeriodField(inputId){
+  var el = document.getElementById(inputId);
+  var v = (el.value || '').trim();
+  if(/^[0-9]+$/.test(v)){ el.value = v + '期'; }
+}
+
 function getNickname(typeName, inputId) {
   var type = (document.querySelector('input[name="'+typeName+'"]:checked') || {}).value;
   if(type === 'nick') return document.getElementById(inputId).value.trim();
@@ -409,6 +417,7 @@ function calcPeriodFromBirth(){
 
 // ===== 登録 =====
 function submitRegister() {
+  normalizePeriodField('reg_period');
   if(!document.getElementById('reg_agree').checked){
     showErr('reg_err','登録情報の自己申告に同意してください。');
     return;
@@ -426,6 +435,8 @@ function submitRegister() {
   document.getElementById('reg_err').style.display = 'none';
 
   setLoading(true,'reg_btn');
+  var termsAgreedAt = '';
+  try{ termsAgreedAt = localStorage.getItem('katsuchu_terms_agreed_at') || ''; }catch(e){}
   send({
     action:'register',
     name:document.getElementById('reg_name').value.trim(),
@@ -437,6 +448,7 @@ function submitRegister() {
     hobby:document.getElementById('reg_hobby').value.trim(),
     note:document.getElementById('reg_note').value.trim(),
     nickname:getNickname('reg_nick_type','reg_nickname'),
+    termsAgreedAt:termsAgreedAt,
   }, function(res){
     setLoading(false,'reg_btn');
     if(res && res.success){
@@ -453,28 +465,39 @@ function submitRegister() {
 }
 
 function submitRegisterForce() {
+  normalizePeriodField('reg_period');
   setLoading(true,'reg_btn');
   document.getElementById('dup_box').style.display = 'none';
-  send({
-    action:'updateStatus',
-    name:document.getElementById('reg_name').value.trim(),
-    birthday:document.getElementById('reg_bd').value.trim(),
-    period:document.getElementById('reg_period').value.trim(),
-    club:document.getElementById('reg_club').value,
-    area:document.getElementById('reg_area').value,
-    status:document.querySelector('input[name="reg_st"]:checked').value,
-    hobby:document.getElementById('reg_hobby').value.trim(),
-    note:document.getElementById('reg_note').value.trim(),
-    nickname:getNickname('reg_nick_type','reg_nickname'),
-  }, function(res){
-    setLoading(false,'reg_btn');
-    if(res && res.success){
-      if(res.uid){ try{ localStorage.setItem('katsuchu_uid', res.uid); }catch(e){} }
-      document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
-      showSection('done');
-    } else {
-      showErr('reg_err', (res && res.error) || '処理に失敗しました。もう一度お試しください。');
+  var name = document.getElementById('reg_name').value.trim();
+  var bd = document.getElementById('reg_bd').value.trim();
+  var period = document.getElementById('reg_period').value.trim();
+  // 既存メンバーのUIDをまず特定してから、UID＋パスワードでupdateStatusを呼ぶ
+  send({ action:'verify', name:name, birthday:bd, period:period }, function(vres){
+    if(!vres || !vres.found || vres.multiple || !vres.uid){
+      setLoading(false,'reg_btn');
+      showErr('reg_err', (vres&&vres.locked&&vres.error) || '本人確認に失敗しました。もう一度お試しください。');
+      return;
     }
+    send({
+      action:'updateStatus',
+      uid:vres.uid,
+      code:bd,
+      club:document.getElementById('reg_club').value,
+      area:document.getElementById('reg_area').value,
+      status:document.querySelector('input[name="reg_st"]:checked').value,
+      hobby:document.getElementById('reg_hobby').value.trim(),
+      note:document.getElementById('reg_note').value.trim(),
+      nickname:getNickname('reg_nick_type','reg_nickname'),
+    }, function(res){
+      setLoading(false,'reg_btn');
+      if(res && res.success){
+        try{ localStorage.setItem('katsuchu_uid', vres.uid); }catch(e){}
+        document.getElementById('done_bd').textContent = bd;
+        showSection('done');
+      } else {
+        showErr('reg_err', (res && res.error) || '処理に失敗しました。もう一度お試しください。');
+      }
+    });
   });
 }
 
