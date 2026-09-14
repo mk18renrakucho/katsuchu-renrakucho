@@ -224,6 +224,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div style="font-size:13px;font-weight:500;margin-bottom:8px">📷 写真を投稿する</div>
       <input type="file" id="g_file" accept="image/*" style="margin-bottom:8px">
       <input type="text" id="g_caption" placeholder="ひとことコメント（任意）" style="margin-bottom:8px">
+      <input type="text" id="g_code" placeholder="誕生日または確認用の数字4桁（パスワード）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
       <div id="g_upload_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
       <button class="btn btn-primary" id="g_upload_btn" onclick="uploadGalleryPhoto()" style="width:100%">投稿する</button>
     </div>
@@ -258,8 +259,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div id="an_comments" style="margin-bottom:12px"></div>
       <div id="an_c_quickreplies" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
       <div style="margin-bottom:6px">
-        <input type="text" id="an_c_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:6px">
-        <input type="text" id="an_c_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:6px">
+        <input type="text" id="an_c_bd" placeholder="誕生日または確認用の数字4桁（パスワード）" maxlength="4" inputmode="numeric" style="margin-bottom:6px">
         <textarea id="an_c_content" rows="2" placeholder="コメントを書く（上のボタンをタップしても入力できます）"></textarea>
       </div>
       <div id="an_c_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
@@ -326,8 +326,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <div id="p-f" style="display:none">
   <div id="fav-login-area" class="fav-login">
     <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
-    <div class="fav-login-sub">名前と、誕生日または確認用の数字を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
-    <input type="text" id="fv_name" placeholder="お名前（登録済みの名前）" style="margin-bottom:8px">
+    <div class="fav-login-sub">誕生日または確認用の数字を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
     <input type="text" id="fv_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
     <div id="fv_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
     <button class="btn btn-primary" onclick="favLogin()" style="width:100%"><i class="ti ti-login" style="margin-right:4px"></i>お気に入りを読み込む</button>
@@ -407,6 +406,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <div style="font-size:12px;color:var(--text-ter);margin-bottom:4px">部活<span style="font-weight:400">（変更したい場合のみ選択）</span></div>
         <select id="uc" style="margin-bottom:12px">
           <option value="">変更しない</option>
+          <option>帰宅部</option>
           <optgroup label="運動部">
             <option>軟式野球部</option><option>サッカー部</option><option>女子ソフトボール部</option>
             <option>剣道部</option><option>男子卓球部</option><option>女子卓球部</option>
@@ -452,12 +452,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
     <div class="modal-step active" id="b-step1">
       <div style="background:#FFF9E6;border-left:3px solid #2d5a9e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#142c4d;line-height:1.6">
-        🔑 名前と、誕生日または確認用の数字で本人確認します。
+        🔑 誕生日または確認用の数字（パスワード）で本人確認します。
       </div>
-      <div style="margin-bottom:6px">
-        <input type="text" id="b_name" placeholder="お名前（必須）" oninput="checkBoardName()">
-      </div>
-      <div id="b_name_check" style="font-size:12px;margin-bottom:10px;display:none"></div>
       <div style="margin-bottom:12px">
         <input type="text" id="b_bd" placeholder="誕生日または確認用の数字4桁（例：0315）" maxlength="4" inputmode="numeric">
       </div>
@@ -653,7 +649,7 @@ function toggleFav(id,e){
   var newFav=!m.fav;
   m.fav=newFav;
   renderM();renderFav();
-  gasGet({action:"saveFavorite",name:favUser.name,birthday:favUser.birthday,target:m.name},function(res){
+  gasGet({action:"saveFavorite",uid:favUser.uid,code:favUser.code,target:m.name},function(res){
     if(res&&res.success){
       showToast(newFav?"❤ お気に入りに追加しました":"💔 お気に入りから削除しました");
     } else {
@@ -723,7 +719,7 @@ function doVerifyUpdate(){
   }
   var btn=document.getElementById("u_verify_btn");
   btn.disabled=true;btn.textContent="確認中...";
-  gasGet({action:"verify", name:m.name, birthday:bd}, function(res){
+  gasGet({action:"verify", uid:m.uid, birthday:bd}, function(res){
     btn.disabled=false;btn.textContent="確認する";
     if(res && res.found && !res.multiple){
       document.getElementById("u_verified_name").textContent=m.name;
@@ -758,7 +754,7 @@ function doUpdate(){
   var btn=document.getElementById("u_btn");
   btn.disabled=true;btn.textContent="更新中...";
   gasGet({
-    action:"updateStatus",name:m.name,birthday:bd,
+    action:"updateStatus",uid:m.uid,code:bd,
     area:document.getElementById("ue").value.trim(),
     status:document.getElementById("us").value,
     homecoming:document.getElementById("ud").value.trim(),
@@ -781,29 +777,13 @@ function doUpdate(){
 // ===================================================
 // コルクボード投稿モーダル（2ステップ）
 // ===================================================
-function checkBoardName(){
-  var name=(document.getElementById("b_name").value||"").trim();
-  var el=document.getElementById("b_name_check");
-  if(!name){el.style.display="none";return;}
-  var found=M.find(function(m){return m.name===name;});
-  if(found){
-    el.innerHTML='<span style="color:#2d7d46">✓ '+escHtmlLite(found.name)+'さん（'+escHtmlLite(found.period)+'・'+escHtmlLite(found.club)+'）</span>';
-    el.style.display="block";
-  } else {
-    el.innerHTML='<span style="color:#a32d2d">⚠ メンバーが見つかりません。名前を確認してください。</span>';
-    el.style.display="block";
-  }
-}
-
 function openBoardModal(){
-  document.getElementById("b_name").value="";
   document.getElementById("b_bd").value="";
   document.getElementById("b_title").value="";
   document.getElementById("b_detail").value="";
   document.getElementById("b_url").value="";
   document.getElementById("b_err1").style.display="none";
   document.getElementById("b_err2").style.display="none";
-  document.getElementById("b_name_check").style.display="none";
   boardVerifiedUser=null;
   showBStep(1);
   document.getElementById("modal-board").classList.add("show");
@@ -825,29 +805,26 @@ function backToBStep1(){
 }
 
 function doVerifyBoard(){
-  var name=(document.getElementById("b_name").value||"").trim();
+  var uid=getMyUid();
   var bd=(document.getElementById("b_bd").value||"").trim();
   var errEl=document.getElementById("b_err1");
   errEl.style.display="none";
-  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
+  if(!uid){errEl.textContent="登録情報が確認できません。ページを開き直してください。";errEl.style.display="block";return;}
   if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日または確認用の数字を4桁で入力してください";errEl.style.display="block";return;}
   var btn=document.getElementById("b_verify_btn");
   btn.disabled=true;btn.textContent="確認中...";
-  gasGet({action:"verify", name:name, birthday:bd}, function(res){
+  gasGet({action:"verify", uid:uid, birthday:bd}, function(res){
     btn.disabled=false;btn.textContent="確認する";
     if(res && res.found && !res.multiple){
-      boardVerifiedUser={name:name, birthday:bd};
-      document.getElementById("b_verified_name").textContent=name;
+      boardVerifiedUser={uid:uid, code:bd};
+      document.getElementById("b_verified_name").textContent=res.name||"";
       document.getElementById("b_err2").style.display="none";
       showBStep(2);
     } else if(res && res.locked){
       errEl.textContent=res.error||"確認の試行回数が多いため、しばらく時間をおいてからお試しください。";
       errEl.style.display="block";
-    } else if(res && res.multiple){
-      errEl.textContent="同じ名前・誕生日（確認用の数字）の方が複数います。管理者にお問い合わせください。";
-      errEl.style.display="block";
     } else {
-      errEl.textContent="名前または誕生日（確認用の数字）が一致しません。登録時と同じ情報を入力してください。";
+      errEl.textContent="誕生日または確認用の数字が一致しません。登録時と同じ情報を入力してください。";
       errEl.style.display="block";
       document.getElementById("b_bd").value="";
     }
@@ -872,8 +849,8 @@ function addPost(){
   btn.disabled=true;btn.textContent="送信中...";
   gasGet({
     action:"postBoard",
-    name:boardVerifiedUser.name,
-    birthday:boardVerifiedUser.birthday,
+    uid:boardVerifiedUser.uid,
+    code:boardVerifiedUser.code,
     cat:document.getElementById("b_cat").value,
     title:title,detail:detail,
     url:url
@@ -1191,12 +1168,14 @@ function compressImageFile(file, maxDim, quality){
 
 function uploadGalleryPhoto(){
   var uid = getMyUid();
+  var code = (document.getElementById('g_code').value||'').trim();
   var fileInput = document.getElementById('g_file');
   var errEl = document.getElementById('g_upload_err');
   var btn = document.getElementById('g_upload_btn');
   errEl.style.display = 'none';
 
   if(!uid){ errEl.textContent = '登録情報が確認できません'; errEl.style.display = 'block'; return; }
+  if(!code || !/^[0-9]{4}$/.test(code)){ errEl.textContent = '誕生日または確認用の数字を4桁で入力してください'; errEl.style.display = 'block'; return; }
   var file = fileInput.files[0];
   if(!file){ errEl.textContent = '画像を選択してください'; errEl.style.display = 'block'; return; }
 
@@ -1212,6 +1191,7 @@ function uploadGalleryPhoto(){
       body: JSON.stringify({
         action: 'uploadPhoto',
         uid: uid,
+        code: code,
         image: results[0],
         thumbnail: results[1],
         caption: document.getElementById('g_caption').value.trim()
@@ -1223,11 +1203,12 @@ function uploadGalleryPhoto(){
       if(res && res.success){
         fileInput.value = '';
         document.getElementById('g_caption').value = '';
+        document.getElementById('g_code').value = '';
         showToast('✓ 投稿しました！');
         loadGalleryFromAPI();
       } else {
         var messages = {
-          not_registered: '登録情報が確認できませんでした',
+          not_registered: '誕生日または確認用の数字が一致しません',
           daily_limit_exceeded: '本日の投稿上限に達しました',
           not_a_valid_image: '画像として読み込めませんでした',
           invalid_thumbnail: 'サムネイルの生成に失敗しました',
@@ -1311,8 +1292,7 @@ function openAnnounceDetail(id){
     return '<button onclick="fillAnnounceComment(\''+q.replace(/'/g,"\\'")+'\')" style="background:var(--gray);border:none;border-radius:16px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">'+escHtmlLite(q)+'</button>';
   }).join('');
   if(favUser){
-    document.getElementById('an_c_name').value = favUser.name;
-    document.getElementById('an_c_bd').value = favUser.birthday;
+    document.getElementById('an_c_bd').value = favUser.code;
   }
   document.getElementById('an_c_err').style.display = 'none';
   document.getElementById('modal-announce-detail').classList.add('show');
@@ -1353,12 +1333,13 @@ function loadAnnounceComments(id){
 }
 
 function postAnnounceComment(){
-  var name = (document.getElementById('an_c_name').value||'').trim();
+  var uid = getMyUid();
   var bd = (document.getElementById('an_c_bd').value||'').trim();
   var content = (document.getElementById('an_c_content').value||'').trim();
   var errEl = document.getElementById('an_c_err');
   errEl.style.display = 'none';
-  if(!name || !bd){ errEl.textContent = 'お名前と誕生日（確認用の数字）を入力してください'; errEl.style.display = 'block'; return; }
+  if(!uid){ errEl.textContent = '登録情報が確認できません。ページを開き直してください。'; errEl.style.display = 'block'; return; }
+  if(!bd || !/^[0-9]{4}$/.test(bd)){ errEl.textContent = '誕生日または確認用の数字を4桁で入力してください'; errEl.style.display = 'block'; return; }
   if(!content){ errEl.textContent = 'コメントを入力してください'; errEl.style.display = 'block'; return; }
   if(!AN_CURRENT_ID) return;
 
@@ -1368,18 +1349,19 @@ function postAnnounceComment(){
   fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action:'postComment', announceId:AN_CURRENT_ID, name:name, birthday:bd, content:content })
+    body: JSON.stringify({ action:'postComment', announceId:AN_CURRENT_ID, uid:uid, code:bd, content:content })
   }).then(function(r){ return r.json(); })
     .then(function(res){
       btn.disabled = false; btn.textContent = 'コメントする';
       if(res && res.success){
         document.getElementById('an_c_content').value = '';
+        document.getElementById('an_c_bd').value = '';
         loadAnnounceComments(AN_CURRENT_ID);
       } else if(res && res.locked){
         errEl.textContent = res.error || '確認の試行回数が多いため、しばらく時間をおいてからお試しください。';
         errEl.style.display = 'block';
       } else {
-        errEl.textContent = (res && res.multiple) ? '同じ名前・誕生日の方が複数いるため確認できませんでした' : '名前または誕生日（確認用の数字）が一致しませんでした';
+        errEl.textContent = '誕生日または確認用の数字が一致しませんでした';
         errEl.style.display = 'block';
       }
     })
@@ -1488,7 +1470,7 @@ function loadFromAPI(){
     .then(function(data){
       M=data.filter(function(d){return d.name;}).map(function(d,i){
         return {
-          id:i+1,name:d.name||"",period:d.period||"",club:d.club||"",area:d.area||"",
+          id:i+1,uid:d.uid||"",name:d.name||"",period:d.period||"",club:d.club||"",area:d.area||"",
           status:(d.status||"在住").replace("在住（松山在住）","在住").replace("松山以外に在住","在住").replace("（松山在住）","").replace("（帰省予定）","").replace("（帰省中）",""),
           date:d.date||"",hobby:d.hobby||"",note:d.note||"",upd:"最新",fav:false,
           updatedAt:d.updatedAt||0
@@ -1640,22 +1622,22 @@ function hidePwaBanner(){document.getElementById('pwa-banner').style.display='no
 
 // お気に入りログイン
 function favLogin(){
-  var name=(document.getElementById("fv_name").value||"").trim();
+  var uid=getMyUid();
   var bd=(document.getElementById("fv_bd").value||"").trim();
   var errEl=document.getElementById("fv_err");
   errEl.style.display="none";
-  if(!name){errEl.textContent="お名前を入力してください";errEl.style.display="block";return;}
+  if(!uid){errEl.textContent="登録情報が確認できません。ページを開き直してください。";errEl.style.display="block";return;}
   if(!bd||!/^[0-9]{4}$/.test(bd)){errEl.textContent="誕生日または確認用の数字を4桁で入力してください";errEl.style.display="block";return;}
   document.getElementById("overlay").classList.add("show");
-  gasGet({action:"getFavorites",name:name,birthday:bd},function(res){
+  gasGet({action:"getFavorites",uid:uid,code:bd},function(res){
     document.getElementById("overlay").classList.remove("show");
     if(res && res.success){
-      favUser={name:name,birthday:bd};
+      favUser={uid:uid,code:bd,name:res.name||""};
       var favNames=res.favorites||[];
       M.forEach(function(m){m.fav=favNames.indexOf(m.name)>=0;});
       showFavLoggedIn();renderFav();renderM();
     } else {
-      errEl.textContent=(res&&res.locked&&res.error)?res.error:"名前または誕生日（確認用の数字）が一致しません。もう一度確認してください。";
+      errEl.textContent=(res&&res.locked&&res.error)?res.error:"誕生日または確認用の数字が一致しません。もう一度確認してください。";
       errEl.style.display="block";
       document.getElementById("fv_bd").value="";
     }
@@ -1669,7 +1651,7 @@ function showFavLoggedIn(){
   document.getElementById("fav-login-area").style.display="none";
   document.getElementById("fav-user-area").style.display="flex";
   document.getElementById("fav-hint").style.display="block";
-  document.getElementById("fav-user-label").textContent=favUser.name+"さんでログイン中";
+  document.getElementById("fav-user-label").textContent=(favUser.name||"登録済みメンバー")+"さんでログイン中";
 }
 function showFavLoggedOut(){
   document.getElementById("fav-login-area").style.display="block";
