@@ -495,7 +495,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.7　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.7.1　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif">
@@ -586,7 +586,7 @@ function showToast(msg){
 }
 
 function av(n,sz){sz=sz||40;var i=(n||"??").slice(0,2);var c=AC[(i.charCodeAt(0)+(i.charCodeAt(1)||0))%AC.length];
-  return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+(sz*0.28)+'px;background:'+c+'">'+i+'</div>';}
+  return '<div class="avatar" style="width:'+sz+'px;height:'+sz+'px;font-size:'+(sz*0.28)+'px;background:'+c+'">'+escHtmlLite(i)+'</div>';}
 
 function sb(st){
   var m={帰省中:"badge-home",帰省予定:"badge-plan",在住:"badge-live"};
