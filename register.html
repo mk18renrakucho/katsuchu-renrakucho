@@ -524,7 +524,8 @@ function send(payload, callback) {
   var params = Object.keys(payload).map(function(k){
     return encodeURIComponent(k) + '=' + encodeURIComponent(payload[k] || '');
   }).join('&');
-  fetch(GAS_URL + '?' + params)
+  params += (params?'&':'') + '_ts=' + Date.now();
+  fetch(GAS_URL + '?' + params, {cache:'no-store'})
     .then(function(r){ return r.json(); })
     .then(function(res){ document.getElementById('overlay').classList.remove('show'); callback(res); })
     .catch(function(){ document.getElementById('overlay').classList.remove('show'); callback({ success: false, error: '通信エラーが発生しました。' }); });
