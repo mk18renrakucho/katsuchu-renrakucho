@@ -205,7 +205,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.6}
     </div>
     <div class="field" id="reg-bd">
       <label>誕生日または確認用の数字<span class="req">*</span><span class="hint">4桁　例：3月15日 → 0315</span></label>
-      <input type="text" id="reg_bd" placeholder="0315" maxlength="4" inputmode="numeric">
+      <input type="text" id="reg_bd" placeholder="0315" maxlength="4" inputmode="numeric" onblur="normalizeDigitsField('reg_bd')">
       <p class="error-msg">誕生日または確認用の数字を4桁で入力してください（例：0315）</p>
     </div>
     <div class="field" id="reg-period">
@@ -369,17 +369,30 @@ function reqField(fieldId, val) {
   if(!val){ el.classList.add('has-error'); return false; }
   el.classList.remove('has-error'); return true;
 }
+// 全角数字を半角に変換（日本語入力で全角のまま数字を打ってしまうケースに対応）
+function toHalfWidthDigits(s){
+  return (s||'').replace(/[０-９]/g, function(c){
+    return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+  });
+}
+function normalizeDigitsField(inputId){
+  var el = document.getElementById(inputId);
+  el.value = toHalfWidthDigits(el.value);
+}
+
 function reqBirthday(fieldId, val) {
   var el = document.getElementById(fieldId);
-  if(!val || !/^[0-9]{4}$/.test(val)){ el.classList.add('has-error'); return false; }
+  var v = toHalfWidthDigits(val);
+  if(!v || !/^[0-9]{4}$/.test(v)){ el.classList.add('has-error'); return false; }
   el.classList.remove('has-error'); return true;
 }
 
-// 「期」欄：数字だけが入力された場合は自動で「期」を補う（例：32 → 32期）
+// 「期」欄：全角数字は半角に変換したうえで、数字だけなら自動で「期」を補う（例：32 → 32期）
 function normalizePeriodField(inputId){
   var el = document.getElementById(inputId);
-  var v = (el.value || '').trim();
-  if(/^[0-9]+$/.test(v)){ el.value = v + '期'; }
+  var v = toHalfWidthDigits(el.value || '').trim();
+  if(/^[0-9]+$/.test(v)){ v = v + '期'; }
+  el.value = v;
 }
 
 function getNickname(typeName, inputId) {
@@ -418,6 +431,7 @@ function calcPeriodFromBirth(){
 // ===== 登録 =====
 function submitRegister() {
   normalizePeriodField('reg_period');
+  normalizeDigitsField('reg_bd');
   if(!document.getElementById('reg_agree').checked){
     showErr('reg_err','登録情報の自己申告に同意してください。');
     return;
@@ -453,6 +467,7 @@ function submitRegister() {
     setLoading(false,'reg_btn');
     if(res && res.success){
       if(res.uid){ try{ localStorage.setItem('katsuchu_uid', res.uid); }catch(e){} }
+      updateBranchGateStyle();
       document.getElementById('done_bd').textContent = document.getElementById('reg_bd').value.trim();
       showSection('done');
     } else if(res && res.duplicate){
@@ -466,6 +481,7 @@ function submitRegister() {
 
 function submitRegisterForce() {
   normalizePeriodField('reg_period');
+  normalizeDigitsField('reg_bd');
   setLoading(true,'reg_btn');
   document.getElementById('dup_box').style.display = 'none';
   var name = document.getElementById('reg_name').value.trim();
@@ -492,6 +508,7 @@ function submitRegisterForce() {
       setLoading(false,'reg_btn');
       if(res && res.success){
         try{ localStorage.setItem('katsuchu_uid', vres.uid); }catch(e){}
+        updateBranchGateStyle();
         document.getElementById('done_bd').textContent = bd;
         showSection('done');
       } else {
@@ -561,17 +578,27 @@ function hidePwaBanner(){document.getElementById('pwa-banner').style.display='no
 // 進めないようにする（index.html側の閲覧ゲートと合わせた対応）
 // ===================================================
 function applyBranchGate(){
-  var uid;
-  try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
-  if(uid) return;
   ['branch-radar','branch-board'].forEach(function(id){
     var el = document.getElementById(id);
     if(!el) return;
-    el.classList.add('branch-btn-disabled');
     el.addEventListener('click', function(ev){
-      ev.preventDefault();
-      showToast('先にメンバー登録をお済ませください');
+      var uid;
+      try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
+      if(!uid){
+        ev.preventDefault();
+        showToast('先にメンバー登録をお済ませください');
+      }
     });
+  });
+  updateBranchGateStyle();
+}
+function updateBranchGateStyle(){
+  var uid;
+  try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
+  ['branch-radar','branch-board'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.classList.toggle('branch-btn-disabled', !uid);
   });
 }
 applyBranchGate();
