@@ -248,7 +248,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- お知らせ詳細・コメント -->
-<div class="modal-overlay" id="modal-announce-detail">
+<div class="modal-overlay" id="modal-announce-detail" onclick="closeAnnounceDetail()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="an_d_title">お知らせ</div>
@@ -275,7 +275,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- お知らせ投稿（管理者用） -->
-<div class="modal-overlay" id="modal-announce-post">
+<div class="modal-overlay" id="modal-announce-post" onclick="closeAnnouncePostModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">📢 お知らせを投稿する（管理者用）</div>
@@ -370,7 +370,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- 近況更新モーダル（2ステップ化） -->
-<div class="modal-overlay" id="modal">
+<div class="modal-overlay" id="modal" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="dn"></div>
@@ -504,7 +504,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <div class="footer">勝中 連絡帳 v1.7.2　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
-<div class="modal-overlay" id="modal-notif">
+<div class="modal-overlay" id="modal-notif" onclick="closeNotifModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">🔔 通知を許可しますか？</div>
@@ -524,7 +524,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <!-- 通知が拒否済みの人向けの案内モーダル -->
-<div class="modal-overlay" id="modal-notif-denied">
+<div class="modal-overlay" id="modal-notif-denied" onclick="closeDeniedNotifModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px">🔔 通知が届いていないようです</div>
