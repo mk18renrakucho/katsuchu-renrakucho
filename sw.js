@@ -1,3 +1,8 @@
+// OneSignal（Web Push通知）の処理をこのService Workerに統合。
+// これにより、PWAキャッシュ用のsw.jsと通知用のOneSignalSDKWorker.jsが
+// 同じ範囲（ルート）で競合する問題を解消する（1つのファイルで両方を担う）。
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+
 // ===================================================
 // 勝中 連絡帳 - Service Worker (v1.4)
 // PWA（ホーム画面に追加）を成立させるための最小構成。
