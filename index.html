@@ -250,7 +250,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 <!-- お知らせ詳細・コメント -->
 <div class="modal-overlay" id="modal-announce-detail" onclick="closeAnnounceDetail()">
   <div class="modal" onclick="event.stopPropagation()">
-    <button onclick="closeAnnounceDetail()" style="width:100%;padding:12px;margin-bottom:12px;background:var(--gray);color:var(--text);border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">← 戻る</button>
     <div class="modal-header">
       <div style="font-weight:500;font-size:16px" id="an_d_title">お知らせ</div>
       <button onclick="closeAnnounceDetail()" style="background:none;border:none;cursor:pointer;font-size:26px;font-weight:700;color:var(--text-sub)">&times;</button>
@@ -271,7 +270,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button id="an_c_btn" onclick="postAnnounceComment()" style="width:100%;padding:12px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">
         コメントする
       </button>
-      <button onclick="closeAnnounceDetail()" style="width:100%;padding:12px;margin-top:10px;background:var(--gray);color:var(--text);border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">← 戻る</button>
     </div>
   </div>
 </div>
