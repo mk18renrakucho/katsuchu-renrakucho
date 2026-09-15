@@ -222,6 +222,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
     <div class="card" style="margin-bottom:14px">
       <div style="font-size:13px;font-weight:500;margin-bottom:8px">📷 写真を投稿する</div>
+      <div id="g_identity" style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px;display:none"></div>
       <input type="file" id="g_file" accept="image/*" style="margin-bottom:8px">
       <input type="text" id="g_caption" placeholder="ひとことコメント（任意）" style="margin-bottom:8px">
       <input type="text" id="g_code" placeholder="誕生日または確認用の数字4桁（パスワード）" maxlength="4" inputmode="numeric" style="margin-bottom:8px">
@@ -257,6 +258,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <div style="border-top:1px solid var(--border);padding-top:12px">
       <div style="font-size:13px;font-weight:500;margin-bottom:8px">💬 コメント</div>
       <div id="an_comments" style="margin-bottom:12px"></div>
+      <div id="an_c_identity" style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:6px;display:none"></div>
       <div id="an_c_quickreplies" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
       <div style="margin-bottom:6px">
         <input type="text" id="an_c_bd" placeholder="誕生日または確認用の数字4桁（パスワード）" maxlength="4" inputmode="numeric" style="margin-bottom:6px">
@@ -327,6 +329,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="fav-login-area" class="fav-login">
     <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
     <div class="fav-login-sub">誕生日または確認用の数字を入力して本人確認します。お気に入りはサーバーに保存され、次回も引き継がれます。</div>
+    <div id="fv_identity" style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px;display:none"></div>
     <input type="text" id="fv_bd" placeholder="誕生日または確認用の数字4桁" maxlength="4" inputmode="numeric" style="margin-bottom:10px">
     <div id="fv_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
     <button class="btn btn-primary" onclick="favLogin()" style="width:100%"><i class="ti ti-login" style="margin-right:4px"></i>お気に入りを読み込む</button>
@@ -451,6 +454,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <button onclick="closeBoardModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-sub)"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-step active" id="b-step1">
+      <div id="b_identity" style="font-size:12px;color:var(--blue);font-weight:700;margin-bottom:8px;display:none"></div>
       <div style="background:#FFF9E6;border-left:3px solid #2d5a9e;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#142c4d;line-height:1.6">
         🔑 誕生日または確認用の数字（パスワード）で本人確認します。
       </div>
@@ -798,6 +802,7 @@ function openBoardModal(){
   document.getElementById("b_err1").style.display="none";
   document.getElementById("b_err2").style.display="none";
   boardVerifiedUser=null;
+  showIdentityLabel("b_identity");
   showBStep(1);
   document.getElementById("modal-board").classList.add("show");
   document.getElementById("modal-board").onclick=function(e){
@@ -994,8 +999,31 @@ function getMyUid(){
   return localStorage.getItem('katsuchu_uid') || '';
 }
 
+// 現在この端末が「誰」として認識されているかの表示名（キャッシュ済みメンバー一覧から検索）
+function getMyDisplayName(){
+  var uid = getMyUid();
+  if(!uid) return '';
+  var m = M.find(function(x){return x.uid===uid;});
+  return m ? m.name : '';
+}
+
+// 「現在○○さんとして操作しています」ラベルを指定要素に表示する
+// （端末共有時に、うっかり別人として書き込んでしまう事故を防ぐため）
+function showIdentityLabel(elId){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  var name = getMyDisplayName();
+  if(name){
+    el.innerHTML = '👤 現在 <b>'+escHtmlLite(name)+'</b> さんとして操作しています';
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 function loadGalleryFromAPI(){
   var uid = getMyUid();
+  showIdentityLabel('g_identity');
   if(!uid){
     document.getElementById('g_period_pills').innerHTML = '';
     document.getElementById('g_grid').innerHTML =
@@ -1309,6 +1337,7 @@ function openAnnounceDetail(id){
   if(favUser){
     document.getElementById('an_c_bd').value = favUser.code;
   }
+  showIdentityLabel('an_c_identity');
   document.getElementById('an_c_err').style.display = 'none';
   document.getElementById('modal-announce-detail').classList.add('show');
 
@@ -1676,6 +1705,7 @@ function showFavLoggedOut(){
   document.getElementById("fav-hint").style.display="none";
   document.getElementById("fv_bd").value="";
   document.getElementById("fv_err").style.display="none";
+  showIdentityLabel("fv_identity");
 }
 
 function initApp(){
