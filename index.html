@@ -256,7 +256,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </div>
     <div id="an_d_time" style="font-size:11px;color:var(--text-ter);margin-bottom:10px"></div>
     <div id="an_d_images" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px"></div>
-    <div id="an_d_detail" style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:16px"></div>
+    <div id="an_d_detail" style="font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:12px"></div>
+    
+    <div style="margin-bottom:16px">
+      <a id="an_d_url" href="#" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:var(--blue-mid);display:none;word-break:break-all"><i class="ti ti-link" style="margin-right:2px"></i><span id="an_d_url_text"></span></a>
+    </div>
+
     <div style="border-top:1px solid var(--border);padding-top:12px">
       <div style="font-size:13px;font-weight:500;margin-bottom:8px">💬 コメント</div>
       <div id="an_comments" style="margin-bottom:12px"></div>
@@ -281,21 +286,60 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       <div style="font-weight:500;font-size:16px">📢 お知らせを投稿する（管理者用）</div>
       <button onclick="closeAnnouncePostModal()" style="background:none;border:none;cursor:pointer;font-size:26px;font-weight:700;color:var(--text-sub)">&times;</button>
     </div>
-    <div style="margin-bottom:10px">
-      <input type="password" id="an_p_pw" placeholder="管理者パスワード">
+    
+    <div class="modal-step active" id="an-step1">
+      <div style="background:#FFF9E6;border-left:3px solid #E6A817;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#7D4F00;line-height:1.6">
+        <i class="ti ti-lock" style="margin-right:4px"></i>管理者パスワードを入力して認証します
+      </div>
+      <div style="margin-bottom:12px">
+        <input type="password" id="an_p_pw" placeholder="管理者パスワード">
+      </div>
+      <div id="an_err1" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="an_verify_btn" onclick="nextAnnounceStep()" style="width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        確認する
+      </button>
     </div>
-    <div style="margin-bottom:10px">
-      <input type="text" id="an_p_title" placeholder="タイトル（必須）">
+
+    <div class="modal-step" id="an-step2">
+      <div class="verified-badge" style="margin-bottom:14px;background:#E8EEF6;border-color:#2d5a9e;color:#1d3f6e">
+        <i class="ti ti-shield-check" style="font-size:16px"></i>
+        <span>管理者として認証されました</span>
+      </div>
+      <div style="margin-bottom:10px">
+        <input type="text" id="an_p_title" placeholder="タイトル（必須）">
+      </div>
+      <div style="margin-bottom:10px">
+        <textarea id="an_p_detail" rows="4" placeholder="詳細（日時・場所・内容など）"></textarea>
+      </div>
+      
+      <div style="margin-bottom:4px">
+        <input type="text" id="an_p_url" placeholder="参考URL（任意）https://...から始まる形で入力">
+      </div>
+      <div id="an_p_url_hint" style="font-size:11px;color:var(--text-ter);margin-bottom:10px">
+        ※他のアプリからコピーした「文字付きリンク」は貼り付けても、URL部分だけ自動で取り出します
+      </div>
+
+      <div style="margin-bottom:6px;font-size:12px;color:var(--text-sub)">画像（チラシ・ポスターなど、最大3枚まで）</div>
+      <input type="file" id="an_p_files" accept="image/*" multiple style="margin-bottom:12px">
+
+      <div style="margin-bottom:14px;background:var(--gray);padding:10px;border-radius:var(--radius-sm);">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;font-weight:500;">
+          <input type="checkbox" id="an_p_notify" checked style="width:16px;height:16px;margin:0;">
+          全員にプッシュ通知を送信する
+        </label>
+        <div style="font-size:11px;color:var(--text-ter);margin-top:4px;margin-left:22px;">
+          チェックを外すと、通知を鳴らさずにこっそり投稿できます
+        </div>
+      </div>
+
+      <div id="an_p_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
+      <button id="an_p_btn" onclick="submitAnnouncePost()" style="width:100%;padding:13px;background:#2d5a9e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+        投稿する
+      </button>
+      <button onclick="backToAnStep1()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
+        ← パスワード入力に戻る
+      </button>
     </div>
-    <div style="margin-bottom:10px">
-      <textarea id="an_p_detail" rows="4" placeholder="詳細（日時・場所・内容など）"></textarea>
-    </div>
-    <div style="margin-bottom:6px;font-size:12px;color:var(--text-sub)">画像（チラシ・ポスターなど、最大3枚まで）</div>
-    <input type="file" id="an_p_files" accept="image/*" multiple style="margin-bottom:10px">
-    <div id="an_p_err" style="font-size:12px;color:#a32d2d;margin-bottom:8px;display:none"></div>
-    <button id="an_p_btn" onclick="submitAnnouncePost()" style="width:100%;padding:13px;background:#2d5a9e;color:white;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
-      投稿する
-    </button>
   </div>
 </div>
 
@@ -483,7 +527,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <input type="text" id="b_title" placeholder="タイトル（必須）例：同窓会のお知らせ／最近ハマっていること">
       </div>
       <div style="margin-bottom:10px">
-        <textarea id="b_detail" rows="4" placeholder="詳細（必須）例：日時・場所・内容　または　近況のひとことなど、気軽にどうぞ"></textarea>
+        <textarea id="b_detail" rows="4" placeholder="詳細（必須）例：日時・場所・内容 または 近況のひとことなど、気軽にどうぞ"></textarea>
       </div>
       <div style="margin-bottom:4px">
         <input type="text" id="b_url" placeholder="参考URL（任意）https://...から始まる形で入力">
@@ -501,7 +545,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.7.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。<br><span onclick="checkPushStatus()" style="text-decoration:underline;cursor:pointer">通知の状態を確認する</span></div>
+<div class="footer">勝中 連絡帳 v1.7.3 © 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif" onclick="closeNotifModal()">
@@ -520,9 +564,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     <button onclick="closeNotifModal()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
       あとで
     </button>
-    <button onclick="checkPushStatus()" style="width:100%;margin-top:4px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline">
-      通知の状態を確認する
-    </button>
   </div>
 </div>
 
@@ -537,7 +578,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       以前「許可しない」を選ばれた場合、恐れ入りますが、お使いの端末のブラウザ設定から、このサイトの通知を手動でオンに切り替えていただく必要があります。<br><br>
       うまくいかない・やり方が分からない場合は、下記のお問い合わせフォームからご連絡ください。
     </div>
-    <!-- TODO: 勝中版お問い合わせフォームのURL開設後に差し替え -->
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;font-size:13px;color:var(--blue);font-weight:700;margin-bottom:14px">📋 お問い合わせフォーム</a>
     <button class="btn btn-primary" onclick="closeDeniedNotifModal()" style="width:100%">
       分かりました
@@ -1343,6 +1383,17 @@ function openAnnounceDetail(id){
   document.getElementById('an_d_title').textContent = '📢 ' + a.title;
   document.getElementById('an_d_time').textContent = a.time;
   document.getElementById('an_d_detail').textContent = a.detail || '';
+  
+  // ★お知らせ詳細でのURLリンク表示処理
+  var urlEl = document.getElementById('an_d_url');
+  if(a.url && safeUrl(a.url)){
+    urlEl.href = safeUrl(a.url);
+    document.getElementById('an_d_url_text').textContent = safeUrl(a.url);
+    urlEl.style.display = 'inline-block';
+  } else {
+    urlEl.style.display = 'none';
+  }
+
   document.getElementById('an_d_images').innerHTML = '<div style="color:var(--text-ter);font-size:12px">画像を読み込み中...</div>';
   document.getElementById('an_c_quickreplies').innerHTML = AN_QUICK_REPLIES.map(function(q){
     return '<button onclick="fillAnnounceComment(\''+q.replace(/'/g,"\\'")+'\')" style="background:var(--gray);border:none;border-radius:16px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit">'+escHtmlLite(q)+'</button>';
@@ -1430,24 +1481,70 @@ function postAnnounceComment(){
     });
 }
 
+// ★ここからView & Newsお知らせ投稿（管理者用）★
 function openAnnouncePostModal(){
+  document.getElementById('an_p_pw').value = '';
+  document.getElementById('an_p_title').value = '';
+  document.getElementById('an_p_detail').value = '';
+  document.getElementById('an_p_url').value = ''; 
+  document.getElementById('an_p_files').value = '';
+  document.getElementById('an_p_notify').checked = true; 
+  document.getElementById('an_err1').style.display = 'none';
   document.getElementById('an_p_err').style.display = 'none';
+  showAnStep(1);
   document.getElementById('modal-announce-post').classList.add('show');
 }
+
 function closeAnnouncePostModal(){
   document.getElementById('modal-announce-post').classList.remove('show');
+}
+
+function showAnStep(n){
+  document.getElementById("an-step1").className="modal-step"+(n===1?" active":"");
+  document.getElementById("an-step2").className="modal-step"+(n===2?" active":"");
+}
+
+function nextAnnounceStep(){
+  var pw = document.getElementById('an_p_pw').value;
+  var errEl = document.getElementById('an_err1');
+  errEl.style.display = 'none';
+  if(!pw){
+    errEl.textContent = '管理者パスワードを入力してください';
+    errEl.style.display = 'block';
+    return;
+  }
+  showAnStep(2);
+}
+
+function backToAnStep1(){
+  document.getElementById('an_p_err').style.display = 'none';
+  showAnStep(1);
 }
 
 function submitAnnouncePost(){
   var pw = document.getElementById('an_p_pw').value || '';
   var title = (document.getElementById('an_p_title').value||'').trim();
   var detail = (document.getElementById('an_p_detail').value||'').trim();
+  var rawUrl = (document.getElementById('an_p_url').value||'').trim();
+  var url = extractUrl(rawUrl); 
+  var notify = document.getElementById('an_p_notify').checked; 
   var files = Array.prototype.slice.call(document.getElementById('an_p_files').files||[]).slice(0,3);
   var errEl = document.getElementById('an_p_err');
   errEl.style.display = 'none';
 
-  if(!pw){ errEl.textContent = '管理者パスワードを入力してください'; errEl.style.display = 'block'; return; }
+  if(!pw){ 
+    showAnStep(1);
+    var err1 = document.getElementById('an_err1');
+    err1.textContent = '管理者パスワードを入力してください'; 
+    err1.style.display = 'block'; 
+    return; 
+  }
   if(!title){ errEl.textContent = 'タイトルを入力してください'; errEl.style.display = 'block'; return; }
+  
+  if(rawUrl && !isValidUrl(url)){
+    errEl.textContent = "URLの形式が正しくありません。https:// から始まる形で入力してください。";
+    errEl.style.display = "block"; return;
+  }
 
   var btn = document.getElementById('an_p_btn');
   btn.disabled = true; btn.textContent = '処理中...';
@@ -1466,6 +1563,8 @@ function submitAnnouncePost(){
         adminPassword: pw,
         title: title,
         detail: detail,
+        url: url,       
+        notify: notify, 
         images: images
       })
     });
@@ -1473,17 +1572,20 @@ function submitAnnouncePost(){
     .then(function(res){
       btn.disabled = false; btn.textContent = '投稿する';
       if(res && res.success){
-        document.getElementById('an_p_pw').value = '';
-        document.getElementById('an_p_title').value = '';
-        document.getElementById('an_p_detail').value = '';
-        document.getElementById('an_p_files').value = '';
         closeAnnouncePostModal();
         showToast('✓ お知らせを投稿しました！');
         loadAnnounceFromAPI();
       } else {
-        var messages = { unauthorized:'パスワードが違います', title_required:'タイトルを入力してください' };
-        errEl.textContent = messages[res && res.error] || '投稿に失敗しました';
-        errEl.style.display = 'block';
+        if(res && res.error === 'unauthorized'){
+          showAnStep(1);
+          var err1 = document.getElementById('an_err1');
+          err1.textContent = 'パスワードが違います';
+          err1.style.display = 'block';
+        } else {
+          var messages = { title_required:'タイトルを入力してください' };
+          errEl.textContent = messages[res && res.error] || '投稿に失敗しました';
+          errEl.style.display = 'block';
+        }
       }
     })
     .catch(function(){
@@ -1563,23 +1665,10 @@ function loadBoardFromAPI(){
 
 // ===================================================
 // 通知許可バナー
-// 一度「あとで」にしても、二度と出さないのではなく、しばらく
-// 間隔を空けてから、また自然に目に入るようにする（しつこくしない
-// 程度に、忘れた頃にもう一度思い出してもらう）。
-// ブラウザで「ブロック（denied）」を選んでしまった人にも、同じ
-// 考え方で定期的に気づく機会を作る。ただし、ブロック状態は
-// JavaScriptから直接は解除できないため、その場合は「設定する」を
-// 押しても本物の許可ポップアップは出さず、ブラウザ設定を自分で
-// 開き直す簡単な案内を表示する（うまくいかない場合はお問い合わせ
-// フォームへ誘導）。
-// いきなりブラウザ標準の許可ポップアップは出さず、まずこちらで
-// 用意した説明画面を経由してから、本物の許可を求める二段階方式。
 // ===================================================
 var NOTIF_LAST_SHOWN_KEY = 'katsuchu_notif_last_shown';
-var NOTIF_REMIND_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; // 30日ごとに、また自然に目に入るようにする
+var NOTIF_REMIND_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; 
 
-// 'granted'（許可済み）または通知非対応の環境ではnullを返す（バナー不要）。
-// それ以外（'default'＝未回答、'denied'＝拒否済み）は、その状態文字列を返す。
 function getNotifBannerState(){
   if(typeof Notification === 'undefined') return null;
   if(Notification.permission === 'granted') return null;
@@ -1655,49 +1744,6 @@ function requestNotifPermission(){
   }
 }
 
-// 画面上で通知購読の状態を確認するための診断表示（開発者ツール不要）
-function checkPushStatus(){
-  if(!window.OneSignalDeferred){
-    alert('OneSignalの読み込みに失敗しています。');
-    return;
-  }
-  var swInfo = 'Service Worker：（確認中...）';
-  var showResult = function(){
-    OneSignalDeferred.push(function(OneSignal){
-      var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
-      var id = OneSignal.User.PushSubscription.id;
-      var optedIn = OneSignal.User.PushSubscription.optedIn;
-      alert(
-        'ブラウザの通知許可：' + perm + '\n' +
-        '購読ID：' + (id || '（まだありません）') + '\n' +
-        '購読オン/オフ：' + optedIn + '\n\n' +
-        swInfo
-      );
-    });
-  };
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(function(regs){
-      if(regs.length === 0){
-        swInfo = 'Service Worker：登録が1件もありません';
-      } else {
-        swInfo = regs.map(function(r){
-          var script = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || (r.waiting && r.waiting.scriptURL) || '(不明)';
-          return 'scope=' + r.scope + '\nscript=' + script + '\nstate=' + (r.active ? r.active.state : '未アクティブ');
-        }).join('\n---\n');
-      }
-      showResult();
-    }).catch(function(){
-      swInfo = 'Service Worker：確認できませんでした';
-      showResult();
-    });
-  } else {
-    swInfo = 'このブラウザはService Workerに対応していません';
-    showResult();
-  }
-}
-
-// 通知の許可が下りたら、OneSignalの購読ID（Subscription ID）を自分の行に保存する。
-// 許可直後はまだIDが確定していないことがあるため、少し待ってから数回試す。
 function savePushSubscriptionId_(OneSignal, tries){
   tries = tries || 0;
   var uid = getMyUid();
@@ -1791,8 +1837,6 @@ function initApp(){
 
   loadFromAPI();
 
-  // 既に通知許可済みの端末は、開くたびに購読IDを同期しておく
-  // （まだ一度も保存できていない場合や、IDが変わった場合の取りこぼしを防ぐ）
   if(window.OneSignalDeferred && typeof Notification!=='undefined' && Notification.permission==='granted'){
     OneSignalDeferred.push(function(OneSignal){
       savePushSubscriptionId_(OneSignal);
@@ -1800,10 +1844,6 @@ function initApp(){
   }
 }
 
-// ===================================================
-// 閲覧ゲート：katsuchu_uid（登録済みの証）が端末に無ければ
-// 中身を見せず、名前＋誕生日（確認用の数字）での本人確認を求める
-// ===================================================
 function checkAccessGate(){
   var uid;
   try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
@@ -1811,7 +1851,6 @@ function checkAccessGate(){
     document.getElementById('access-gate').style.display = 'none';
     initApp();
   }
-  // uidが無い場合はゲート画面を表示したまま待機（何も初期化しない）
 }
 
 function submitGateVerify(){
