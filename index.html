@@ -501,7 +501,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.7.2　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.7.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif" onclick="closeNotifModal()">
@@ -1644,10 +1644,27 @@ function requestNotifPermission(){
     OneSignalDeferred.push(function(OneSignal){
       OneSignal.Notifications.requestPermission().then(function(){
         showToast(Notification.permission === 'granted' ? '✓ 通知をオンにしました' : '通知の設定を確認しました');
+        if(Notification.permission === 'granted') savePushSubscriptionId_(OneSignal);
       }).catch(function(){
         showToast('⚠ 通知の設定に失敗しました');
       });
     });
+  }
+}
+
+// 通知の許可が下りたら、OneSignalの購読ID（Subscription ID）を自分の行に保存する。
+// 許可直後はまだIDが確定していないことがあるため、少し待ってから数回試す。
+function savePushSubscriptionId_(OneSignal, tries){
+  tries = tries || 0;
+  var uid = getMyUid();
+  if(!uid) return;
+  var pid = OneSignal.User.PushSubscription.id;
+  if(pid){
+    gasGet({action:'savePushId', uid:uid, pushId:pid}, function(){});
+    return;
+  }
+  if(tries < 5){
+    setTimeout(function(){ savePushSubscriptionId_(OneSignal, tries+1); }, 1500);
   }
 }
 
@@ -1729,6 +1746,14 @@ function initApp(){
   else go("r");
 
   loadFromAPI();
+
+  // 既に通知許可済みの端末は、開くたびに購読IDを同期しておく
+  // （まだ一度も保存できていない場合や、IDが変わった場合の取りこぼしを防ぐ）
+  if(window.OneSignalDeferred && typeof Notification!=='undefined' && Notification.permission==='granted'){
+    OneSignalDeferred.push(function(OneSignal){
+      savePushSubscriptionId_(OneSignal);
+    });
+  }
 }
 
 // ===================================================
