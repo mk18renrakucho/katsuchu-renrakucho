@@ -501,7 +501,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.7.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。</div>
+<div class="footer">勝中 連絡帳 v1.7.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。<br><span onclick="checkPushStatus()" style="text-decoration:underline;cursor:pointer">通知の状態を確認する</span></div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif" onclick="closeNotifModal()">
@@ -519,6 +519,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
     </button>
     <button onclick="closeNotifModal()" style="width:100%;margin-top:8px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:12px;cursor:pointer;font-family:inherit">
       あとで
+    </button>
+    <button onclick="checkPushStatus()" style="width:100%;margin-top:4px;padding:8px;background:none;border:none;color:var(--text-ter);font-size:11px;cursor:pointer;font-family:inherit;text-decoration:underline">
+      通知の状態を確認する
     </button>
   </div>
 </div>
@@ -1650,6 +1653,24 @@ function requestNotifPermission(){
       });
     });
   }
+}
+
+// 画面上で通知購読の状態を確認するための診断表示（開発者ツール不要）
+function checkPushStatus(){
+  if(!window.OneSignalDeferred){
+    alert('OneSignalの読み込みに失敗しています。');
+    return;
+  }
+  OneSignalDeferred.push(function(OneSignal){
+    var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
+    var id = OneSignal.User.PushSubscription.id;
+    var optedIn = OneSignal.User.PushSubscription.optedIn;
+    alert(
+      'ブラウザの通知許可：' + perm + '\n' +
+      '購読ID：' + (id || '（まだありません）') + '\n' +
+      '購読オン/オフ：' + optedIn
+    );
+  });
 }
 
 // 通知の許可が下りたら、OneSignalの購読ID（Subscription ID）を自分の行に保存する。
