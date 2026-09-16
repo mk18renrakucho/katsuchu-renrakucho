@@ -21,7 +21,6 @@
   firebase.initializeApp(firebaseConfig);
   const messaging = firebase.messaging();
 
-  // アプリを「開いている時」に通知を受け取った場合の処理（画面下にトーストを出す）
   messaging.onMessage(function(payload) {
     console.log('通知を受信:', payload);
     var t = document.getElementById("toast");
@@ -1508,20 +1507,6 @@ function loadFromAPI(){
     });
 }
 
-function loadBoardFromAPI(){
-  if(P.length===0){
-    document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
-  }
-  fetch(API_URL+"?action=getBoard&_ts="+Date.now(), {cache:"no-store"})
-    .then(function(r){return r.json();})
-    .then(function(data){P=Array.isArray(data)?data:[];renderP();})
-    .catch(function(){
-      if(P.length===0){
-        document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';
-      }
-    });
-}
-
 // ===================================================
 // 🚀 Firebase プッシュ通知 (フロントエンド)
 // ===================================================
@@ -1606,23 +1591,25 @@ function requestNotifPermission(){
 }
 
 // 購読ID（トークン）を取得してGASへ送信
+// 【修正箇所】GitHub Pagesのサブフォルダ問題を回避するため、明示的に登録済みのSWをFirebaseへ渡す
 function savePushSubscriptionId_(tries){
   tries = tries || 0;
   var uid = getMyUid();
   if(!uid) return;
   
-  // 第2の鍵（VAPID公開鍵）
   const vapidKey = "BJc6UKkFHcb9hWYZeDEtmqIJ9_bCIQOeUP1_qVJkStlZgEgND-wSpjZ72SbLiXWUxEozwBnQDQuAjR884R4L9LU";
 
-  messaging.getToken({ vapidKey: vapidKey }).then(function(currentToken) {
-    if (currentToken) {
-      gasGet({action:'savePushId', uid:uid, pushId:currentToken}, function(){});
-    }
-  }).catch(function(err) {
-    console.warn('Firebase Token Error:', err);
-    if(tries < 5){
-      setTimeout(function(){ savePushSubscriptionId_(tries+1); }, 1500);
-    }
+  navigator.serviceWorker.ready.then(function(registration) {
+    messaging.getToken({ vapidKey: vapidKey, serviceWorkerRegistration: registration }).then(function(currentToken) {
+      if (currentToken) {
+        gasGet({action:'savePushId', uid:uid, pushId:currentToken}, function(){});
+      }
+    }).catch(function(err) {
+      console.warn('Firebase Token Error:', err);
+      if(tries < 5){
+        setTimeout(function(){ savePushSubscriptionId_(tries+1); }, 1500);
+      }
+    });
   });
 }
 
@@ -1652,9 +1639,12 @@ function checkPushStatus(){
       
       if(perm === 'granted') {
         const vapidKey = "BJc6UKkFHcb9hWYZeDEtmqIJ9_bCIQOeUP1_qVJkStlZgEgND-wSpjZ72SbLiXWUxEozwBnQDQuAjR884R4L9LU";
-        messaging.getToken({ vapidKey: vapidKey })
-        .then(function(token) { showResult(token ? '取得済み（正常）' : '（空のID）'); })
-        .catch(function(err) { showResult('（エラー: ' + err.message + '）'); });
+        // 【修正箇所】ここでも明示的にSWを渡して状態を確認
+        navigator.serviceWorker.ready.then(function(registration) {
+          messaging.getToken({ vapidKey: vapidKey, serviceWorkerRegistration: registration })
+          .then(function(token) { showResult(token ? '取得済み（正常）' : '（空のID）'); })
+          .catch(function(err) { showResult('（エラー: ' + err.message + '）'); });
+        });
       } else {
         showResult('（通知が許可されていません）');
       }
@@ -1674,7 +1664,8 @@ setTimeout(showNotifBannerIfNeeded, 1500);
 var deferredPrompt = null;
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('firebase-messaging-sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
+    // サブフォルダ内にある firebase-messaging-sw.js を明示的に登録
+    navigator.serviceWorker.register('./firebase-messaging-sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
   });
 }
 window.addEventListener('beforeinstallprompt', function(e){
