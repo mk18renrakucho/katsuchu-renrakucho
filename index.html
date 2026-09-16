@@ -1652,7 +1652,8 @@ setTimeout(showNotifBannerIfNeeded, 1500);
 var deferredPrompt = null;
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./firebase-messaging-sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
+    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
+      .catch(function(err){ console.log('SW登録失敗:', err); });
   });
 }
 window.addEventListener('beforeinstallprompt', function(e){
