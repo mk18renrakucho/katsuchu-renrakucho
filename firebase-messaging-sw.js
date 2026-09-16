@@ -14,9 +14,9 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(
-    payload.notification.title,
+    payload.notification.title || '勝中 連絡帳',
     {
-      body: payload.notification.body,
+      body: payload.notification.body || '新しいお知らせがあります',
       icon: './icons/icon-192.png'
     }
   );
