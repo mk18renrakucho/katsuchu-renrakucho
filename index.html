@@ -1661,16 +1661,39 @@ function checkPushStatus(){
     alert('OneSignalの読み込みに失敗しています。');
     return;
   }
-  OneSignalDeferred.push(function(OneSignal){
-    var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
-    var id = OneSignal.User.PushSubscription.id;
-    var optedIn = OneSignal.User.PushSubscription.optedIn;
-    alert(
-      'ブラウザの通知許可：' + perm + '\n' +
-      '購読ID：' + (id || '（まだありません）') + '\n' +
-      '購読オン/オフ：' + optedIn
-    );
-  });
+  var swInfo = 'Service Worker：（確認中...）';
+  var showResult = function(){
+    OneSignalDeferred.push(function(OneSignal){
+      var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
+      var id = OneSignal.User.PushSubscription.id;
+      var optedIn = OneSignal.User.PushSubscription.optedIn;
+      alert(
+        'ブラウザの通知許可：' + perm + '\n' +
+        '購読ID：' + (id || '（まだありません）') + '\n' +
+        '購読オン/オフ：' + optedIn + '\n\n' +
+        swInfo
+      );
+    });
+  };
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      if(regs.length === 0){
+        swInfo = 'Service Worker：登録が1件もありません';
+      } else {
+        swInfo = regs.map(function(r){
+          var script = (r.active && r.active.scriptURL) || (r.installing && r.installing.scriptURL) || (r.waiting && r.waiting.scriptURL) || '(不明)';
+          return 'scope=' + r.scope + '\nscript=' + script + '\nstate=' + (r.active ? r.active.state : '未アクティブ');
+        }).join('\n---\n');
+      }
+      showResult();
+    }).catch(function(){
+      swInfo = 'Service Worker：確認できませんでした';
+      showResult();
+    });
+  } else {
+    swInfo = 'このブラウザはService Workerに対応していません';
+    showResult();
+  }
 }
 
 // 通知の許可が下りたら、OneSignalの購読ID（Subscription ID）を自分の行に保存する。
