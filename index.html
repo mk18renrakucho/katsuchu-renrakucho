@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
 <script>
-  // ムネアキさんのFirebase設定（第1の鍵）
   const firebaseConfig = {
     apiKey: "AIzaSyDHTAfFAKYy5qBE8fGx7tq7nY2X1dOGjG0",
     authDomain: "katsuchu-82b50.firebaseapp.com",
@@ -22,7 +21,6 @@
   const messaging = firebase.messaging();
 
   messaging.onMessage(function(payload) {
-    console.log('通知を受信:', payload);
     var t = document.getElementById("toast");
     if(t) {
       t.textContent = '🔔 ' + (payload.notification.title || '新しいお知らせ');
@@ -1507,10 +1505,6 @@ function loadFromAPI(){
     });
 }
 
-// ===================================================
-// 🚀 Firebase プッシュ通知 (フロントエンド)
-// ===================================================
-
 var NOTIF_LAST_SHOWN_KEY = 'katsuchu_notif_last_shown';
 var NOTIF_REMIND_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -1575,7 +1569,6 @@ function closeDeniedNotifModal(){
   document.getElementById('modal-notif-denied').classList.remove('show');
 }
 
-// 通知許可の要求
 function requestNotifPermission(){
   document.getElementById('modal-notif').classList.remove('show');
   Notification.requestPermission().then(function(permission) {
@@ -1590,8 +1583,6 @@ function requestNotifPermission(){
   });
 }
 
-// 購読ID（トークン）を取得してGASへ送信
-// 【修正箇所】GitHub Pagesのサブフォルダ問題を回避するため、明示的に登録済みのSWをFirebaseへ渡す
 function savePushSubscriptionId_(tries){
   tries = tries || 0;
   var uid = getMyUid();
@@ -1613,7 +1604,6 @@ function savePushSubscriptionId_(tries){
   });
 }
 
-// 通知状態の確認（デバッグ用）
 function checkPushStatus(){
   var swInfo = 'Service Worker：（確認中...）';
   var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
@@ -1639,7 +1629,6 @@ function checkPushStatus(){
       
       if(perm === 'granted') {
         const vapidKey = "BJc6UKkFHcb9hWYZeDEtmqIJ9_bCIQOeUP1_qVJkStlZgEgND-wSpjZ72SbLiXWUxEozwBnQDQuAjR884R4L9LU";
-        // 【修正箇所】ここでも明示的にSWを渡して状態を確認
         navigator.serviceWorker.ready.then(function(registration) {
           messaging.getToken({ vapidKey: vapidKey, serviceWorkerRegistration: registration })
           .then(function(token) { showResult(token ? '取得済み（正常）' : '（空のID）'); })
@@ -1660,11 +1649,9 @@ function checkPushStatus(){
 
 setTimeout(showNotifBannerIfNeeded, 1500);
 
-// PWA
 var deferredPrompt = null;
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    // サブフォルダ内にある firebase-messaging-sw.js を明示的に登録
     navigator.serviceWorker.register('./firebase-messaging-sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
   });
 }
@@ -1737,7 +1724,6 @@ function initApp(){
 
   loadFromAPI();
 
-  // 既に通知許可済みの端末は、開くたびにIDを同期（取りこぼし防止）
   if(typeof Notification!=='undefined' && Notification.permission==='granted'){
     savePushSubscriptionId_();
   }
