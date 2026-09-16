@@ -1326,7 +1326,8 @@ function renderAnnounceList(list){
     var thumbHtml = (a.thumbnails||[]).map(function(t){
       return '<img src="'+t+'" style="width:64px;height:64px;object-fit:cover;border-radius:6px;margin-right:6px">';
     }).join('');
-    var preview = escHtmlLite((a.detail||'').slice(0,60)) + ((a.detail||'').length>60?'…':'');
+    var detailStr = String(a.detail||'');
+    var preview = escHtmlLite(detailStr.slice(0,60)) + (detailStr.length>60?'…':'');
     return '<div class="card" style="margin-bottom:10px;cursor:pointer" onclick="openAnnounceDetail(\''+a.id+'\')">'
       + '<div style="font-size:15px;font-weight:500;margin-bottom:4px">📢 '+escHtmlLite(a.title)+'</div>'
       + '<div style="font-size:11px;color:var(--text-ter);margin-bottom:8px">'+escHtmlLite(a.time)+'</div>'
