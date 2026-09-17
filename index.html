@@ -5,20 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>勝中 連絡帳</title>
 
-<!-- OneSignal SDK -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<!-- Firebase Cloud Messaging SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
 <script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "4d62152f-c6ef-48d5-878b-e717933c1c8f",
-      safari_web_id: "",
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: true,
-      serviceWorkerParam: { scope: "/katsuchu-renrakucho/" },
-      serviceWorkerPath: "sw.js",
-    });
+  firebase.initializeApp({
+    apiKey: "AIzaSyDHTAfFAKYy5qBE8fGx7tq7nY2X1dOGjG0",
+    authDomain: "katsuchu-82b50.firebaseapp.com",
+    projectId: "katsuchu-82b50",
+    storageBucket: "katsuchu-82b50.firebasestorage.app",
+    messagingSenderId: "933868129628",
+    appId: "1:933868129628:web:493881226f832777e00599"
   });
+  var FCM_VAPID_KEY = "BJc6UKkFHcb9hWYZeDEtmqIJ9_bCIQOeUP1_qVJkStlZgEgND-wSpjZ72SbLiXWUxEozwBnQDQuAjR884R4L9LU";
 </script>
 
 <!-- PWA設定 -->
@@ -501,7 +500,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v1.7.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。<br><span onclick="checkPushStatus()" style="text-decoration:underline;cursor:pointer">通知の状態を確認する</span></div>
+<div class="footer">勝中 連絡帳 v1.8.0　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。<br><span onclick="checkPushStatus()" style="text-decoration:underline;cursor:pointer">通知の状態を確認する</span></div>
 
 <!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif" onclick="closeNotifModal()">
@@ -1644,38 +1643,42 @@ function closeDeniedNotifModal(){
 
 function requestNotifPermission(){
   document.getElementById('modal-notif').classList.remove('show');
-  if(window.OneSignalDeferred){
-    OneSignalDeferred.push(function(OneSignal){
-      OneSignal.Notifications.requestPermission().then(function(){
-        showToast(Notification.permission === 'granted' ? '✓ 通知をオンにしました' : '通知の設定を確認しました');
-        if(Notification.permission === 'granted') savePushSubscriptionId_(OneSignal);
-      }).catch(function(){
-        showToast('⚠ 通知の設定に失敗しました');
-      });
-    });
+  if(typeof Notification === 'undefined'){
+    showToast('⚠ このブラウザは通知に対応していません');
+    return;
   }
+  Notification.requestPermission().then(function(permission){
+    showToast(permission === 'granted' ? '✓ 通知をオンにしました' : '通知の設定を確認しました');
+    if(permission === 'granted') registerFcmToken_();
+  }).catch(function(){
+    showToast('⚠ 通知の設定に失敗しました');
+  });
 }
 
 // 画面上で通知購読の状態を確認するための診断表示（開発者ツール不要）
 function checkPushStatus(){
-  if(!window.OneSignalDeferred){
-    alert('OneSignalの読み込みに失敗しています。');
-    return;
-  }
+  var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
   var swInfo = 'Service Worker：（確認中...）';
-  var showResult = function(){
-    OneSignalDeferred.push(function(OneSignal){
-      var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
-      var id = OneSignal.User.PushSubscription.id;
-      var optedIn = OneSignal.User.PushSubscription.optedIn;
-      alert(
-        'ブラウザの通知許可：' + perm + '\n' +
-        '購読ID：' + (id || '（まだありません）') + '\n' +
-        '購読オン/オフ：' + optedIn + '\n\n' +
-        swInfo
-      );
-    });
+
+  var showResult = function(tokenPreview){
+    alert(
+      'ブラウザの通知許可：' + perm + '\n' +
+      'FCMトークン：' + (tokenPreview || '（まだありません）') + '\n\n' +
+      swInfo
+    );
   };
+
+  var checkToken = function(){
+    if(perm !== 'granted' || !('serviceWorker' in navigator)){ showResult(); return; }
+    navigator.serviceWorker.getRegistration('./sw.js').then(function(reg){
+      var messaging = reg ? getFcmMessaging_() : null;
+      if(!reg || !messaging){ showResult(); return; }
+      messaging.getToken({ vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: reg })
+        .then(function(token){ showResult(token ? (token.slice(0,24)+'...') : null); })
+        .catch(function(){ showResult(); });
+    }).catch(function(){ showResult(); });
+  };
+
   if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistrations().then(function(regs){
       if(regs.length === 0){
@@ -1686,10 +1689,10 @@ function checkPushStatus(){
           return 'scope=' + r.scope + '\nscript=' + script + '\nstate=' + (r.active ? r.active.state : '未アクティブ');
         }).join('\n---\n');
       }
-      showResult();
+      checkToken();
     }).catch(function(){
       swInfo = 'Service Worker：確認できませんでした';
-      showResult();
+      checkToken();
     });
   } else {
     swInfo = 'このブラウザはService Workerに対応していません';
@@ -1697,20 +1700,33 @@ function checkPushStatus(){
   }
 }
 
-// 通知の許可が下りたら、OneSignalの購読ID（Subscription ID）を自分の行に保存する。
-// 許可直後はまだIDが確定していないことがあるため、少し待ってから数回試す。
-function savePushSubscriptionId_(OneSignal, tries){
+// 通知の許可が下りたら、FCMトークンを取得して自分の行に保存する。
+// sw.jsの登録が間に合っていないことがあるため、少し待ってから数回試す。
+function getFcmMessaging_(){
+  try { return firebase.messaging(); } catch(e){ return null; }
+}
+
+function registerFcmToken_(tries){
   tries = tries || 0;
-  var uid = getMyUid();
-  if(!uid) return;
-  var pid = OneSignal.User.PushSubscription.id;
-  if(pid){
-    gasGet({action:'savePushId', uid:uid, pushId:pid}, function(){});
-    return;
-  }
-  if(tries < 5){
-    setTimeout(function(){ savePushSubscriptionId_(OneSignal, tries+1); }, 1500);
-  }
+  if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  if(!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.getRegistration('./sw.js').then(function(reg){
+    if(!reg){
+      if(tries < 5) setTimeout(function(){ registerFcmToken_(tries+1); }, 1500);
+      return;
+    }
+    var messaging = getFcmMessaging_();
+    if(!messaging) return;
+    messaging.getToken({ vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: reg })
+      .then(function(token){
+        var uid = getMyUid();
+        if(token && uid) gasGet({action:'savePushId', uid:uid, pushId:token}, function(){});
+      })
+      .catch(function(err){
+        console.warn('FCMトークン取得に失敗しました:', err);
+      });
+  });
 }
 
 setTimeout(showNotifBannerIfNeeded, 1500);
@@ -1792,12 +1808,10 @@ function initApp(){
 
   loadFromAPI();
 
-  // 既に通知許可済みの端末は、開くたびに購読IDを同期しておく
-  // （まだ一度も保存できていない場合や、IDが変わった場合の取りこぼしを防ぐ）
-  if(window.OneSignalDeferred && typeof Notification!=='undefined' && Notification.permission==='granted'){
-    OneSignalDeferred.push(function(OneSignal){
-      savePushSubscriptionId_(OneSignal);
-    });
+  // 既に通知許可済みの端末は、開くたびにFCMトークンを同期しておく
+  // （まだ一度も保存できていない場合や、トークンが変わった場合の取りこぼしを防ぐ）
+  if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+    registerFcmToken_();
   }
 }
 
