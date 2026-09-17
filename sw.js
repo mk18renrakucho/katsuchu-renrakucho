@@ -65,6 +65,8 @@ self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
       return cache.addAll(PRECACHE_URLS).catch(function(err) {
+        // 1つでも読み込みに失敗すると全体が失敗するため、
+        // 失敗しても致命的にならないよう握りつぶす（次回起動時に再試行される）
         console.warn('一部ファイルの事前キャッシュに失敗しました:', err);
       });
     })
@@ -87,12 +89,18 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
   var url = event.request.url;
 
+  // GASへのAPI通信・Firebase関連（トークン登録・メッセージ受信等）は、
+  // キャッシュせず必ずネットワークから取得する
+  // （会員データ・投稿・通知の許可状態は、常に最新でなければならないため。
+  //  また、これらの多くはPOSTリクエストであり、そもそもCache APIに
+  //  保存できないため、素通しさせないとエラーの原因にもなる）
   if (url.indexOf('script.google.com') !== -1 ||
       url.indexOf('googleapis.com') !== -1 ||
       url.indexOf('gstatic.com') !== -1) {
-    return;
+    return; // ここで何もしなければ、ブラウザが通常通り通信する
   }
 
+  // それ以外の静的ファイルは、キャッシュ優先。無ければネットワークから取得して次回用に保存する
   event.respondWith(
     caches.match(event.request).then(function(cached) {
       if (cached) return cached;
@@ -106,6 +114,7 @@ self.addEventListener('fetch', function(event) {
         });
         return response;
       }).catch(function() {
+        // オフライン等で取得できなかった場合、キャッシュにも無ければそのまま失敗させる
         return cached;
       });
     })
