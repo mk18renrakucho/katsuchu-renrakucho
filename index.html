@@ -5,28 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>勝中 連絡帳</title>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
+<!-- OneSignal SDK -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDHTAfFAKYy5qBE8fGx7tq7nY2X1dOGjG0",
-    authDomain: "katsuchu-82b50.firebaseapp.com",
-    projectId: "katsuchu-82b50",
-    storageBucket: "katsuchu-82b50.firebasestorage.app",
-    messagingSenderId: "933868129628",
-    appId: "1:933868129628:web:493881226f832777e00599"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
-
-  messaging.onMessage(function(payload) {
-    var t = document.getElementById("toast");
-    if(t) {
-      t.textContent = '🔔 ' + (payload.notification.title || '新しいお知らせ');
-      t.classList.add("show");
-      setTimeout(function(){ t.classList.remove("show"); }, 4000);
-    }
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "4d62152f-c6ef-48d5-878b-e717933c1c8f",
+      safari_web_id: "",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: true,
+      serviceWorkerParam: { scope: "/katsuchu-renrakucho/" },
+      serviceWorkerPath: "sw.js",
+    });
   });
 </script>
 
@@ -101,14 +92,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 .fav-user-badge{display:flex;align-items:center;gap:10px;background:var(--blue-light);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px}
 .fav-user-badge .fav-user-info{flex:1;font-size:13px;color:var(--blue);font-weight:500}
 .fav-user-badge .fav-logout-btn{font-size:11px;color:var(--text-ter);background:none;border:1px solid var(--border);border-radius:20px;padding:3px 10px;cursor:pointer;font-family:inherit}
+
+/* 2ステップモーダル用 */
 .modal-step{display:none}
 .modal-step.active{display:block}
 .verified-badge{background:#E7F8EE;border:1px solid #3b6d11;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:13px;color:#2d7d46;display:flex;align-items:center;gap:6px}
+
+/* PWAインストールバナー */
 .pwa-banner{background:linear-gradient(135deg,#1d3f6e,#2d5a9e);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;display:none}
 .pwa-banner-icon{font-size:24px;flex-shrink:0}
 .pwa-banner-text{flex:1}
 .pwa-banner-btn{background:#fff;color:#1d3f6e;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
 .pwa-banner-close{background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+
+/* 通知許可バナー・説明モーダル */
 .notif-banner{background:linear-gradient(135deg,#0f6e56,#2d7d46);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.5;display:none}
 .notif-banner-icon{font-size:22px;flex-shrink:0}
 .notif-banner-text{flex:1}
@@ -118,6 +115,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </head>
 <body>
 
+<!-- 閲覧ゲート：登録済みメンバーのみ中身を見られるようにする -->
 <div id="access-gate">
   <div class="gate-inner">
     <div class="gate-title">🔑 本人確認</div>
@@ -136,6 +134,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 </div>
 
 <div class="app">
+
+<!-- PWAインストールバナー -->
 <div class="pwa-banner" id="pwa-banner">
   <div class="pwa-banner-icon">📱</div>
   <div class="pwa-banner-text">ホーム画面に追加するとアプリとして使えます</div>
@@ -143,6 +143,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <button class="pwa-banner-close" onclick="hidePwaBanner()">✕</button>
 </div>
 
+<!-- 通知許可バナー -->
 <div class="notif-banner" id="notif-banner">
   <div class="notif-banner-icon">🔔</div>
   <div class="notif-banner-text">お知らせを見逃さないために、通知をオンにしませんか</div>
@@ -177,6 +178,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="content">
 
+<!-- 出没レーダー -->
 <div id="p-r">
   <div class="search-wrap">
     <i class="ti ti-search"></i>
@@ -195,6 +197,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="ml"></div>
 </div>
 
+<!-- コルクボード -->
 <div id="p-b" style="display:none">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="display:flex;gap:6px">
@@ -207,6 +210,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="pl"></div>
 </div>
 
+<!-- View & News -->
 <div id="p-g" style="display:none">
   <div style="display:flex;gap:8px;margin-bottom:14px;background:var(--gray);border-radius:var(--radius);padding:4px">
     <button id="gtb-photo" class="subtab active" onclick="switchGalleryTab('photo')" style="flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;background:var(--white);color:var(--text)">📷 写真</button>
@@ -243,6 +247,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
+<!-- お知らせ詳細・コメント -->
 <div class="modal-overlay" id="modal-announce-detail" onclick="closeAnnounceDetail()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -269,6 +274,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
+<!-- お知らせ投稿（管理者用） -->
 <div class="modal-overlay" id="modal-announce-post" onclick="closeAnnouncePostModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -293,6 +299,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
+<!-- 部室 -->
 <div id="p-c" style="display:none">
   <div style="background:var(--gray);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:13px;color:var(--text-sub);line-height:1.6">
     <i class="ti ti-info-circle" style="margin-right:4px"></i>部活の名前を合い言葉として入力するとアルバムが開きます。
@@ -319,6 +326,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="cl"></div>
 </div>
 
+<!-- お気に入り -->
 <div id="p-f" style="display:none">
   <div id="fav-login-area" class="fav-login">
     <div class="fav-login-title"><i class="ti ti-heart" style="color:#e74c3c;margin-right:4px"></i>お気に入りを使う</div>
@@ -339,6 +347,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div id="fl"></div>
 </div>
 
+<!-- 安心宣言 -->
 <div id="p-a" style="display:none">
   <div style="background:var(--blue);border-radius:var(--radius);padding:16px;margin-bottom:14px;text-align:center">
     <i class="ti ti-shield-lock" style="font-size:32px;color:var(--white);display:block;margin-bottom:8px"></i>
@@ -353,12 +362,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   <div class="card" style="margin-bottom:10px"><div style="font-size:13px;font-weight:500;color:var(--blue);margin-bottom:8px">【6】このシステムの限界について</div><div style="font-size:13px;color:var(--text-sub);line-height:1.7">このシステムは佐々木宗明個人のボランティアで運営しています。管理者が運営を続けられなくなった場合、後継者を募るか、システムを終了します。</div></div>
   <div style="background:var(--blue-light);border-radius:var(--radius);padding:14px;text-align:center">
     <div style="font-size:13px;color:var(--blue);font-weight:500;margin-bottom:4px">管理者：佐々木 宗明（勝山中学校 32期）</div>
+    <!-- TODO: 勝中版お問い合わせフォームのURL開設後に差し替え -->
     <div style="font-size:12px;color:var(--text-sub)"><a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">📋 お問い合わせフォーム</a></div>
   </div>
 </div>
 
 </div>
 
+<!-- 近況更新モーダル（2ステップ化） -->
 <div class="modal-overlay" id="modal" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -437,6 +448,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
+<!-- コルクボード投稿モーダル（2ステップ化） -->
 <div class="modal-overlay" id="modal-board">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -471,7 +483,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
         <input type="text" id="b_title" placeholder="タイトル（必須）例：同窓会のお知らせ／最近ハマっていること">
       </div>
       <div style="margin-bottom:10px">
-        <textarea id="b_detail" rows="4" placeholder="詳細（必須）例：日時・場所・内容 または 近況のひとことなど、気軽にどうぞ"></textarea>
+        <textarea id="b_detail" rows="4" placeholder="詳細（必須）例：日時・場所・内容　または　近況のひとことなど、気軽にどうぞ"></textarea>
       </div>
       <div style="margin-bottom:4px">
         <input type="text" id="b_url" placeholder="参考URL（任意）https://...から始まる形で入力">
@@ -489,8 +501,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
 
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
-<div class="footer">勝中 連絡帳 v2.0 (Firebase Push)<br>© 2026 佐々木宗明（32期）All rights reserved.<br><span onclick="checkPushStatus()" style="text-decoration:underline;cursor:pointer">通知の状態を確認する</span></div>
+<div class="footer">勝中 連絡帳 v1.7.3　© 2026 佐々木宗明（32期）All rights reserved. 無断転載・複製を禁じます。<br><span onclick="checkPushStatus()" style="text-decoration:underline;cursor:pointer">通知の状態を確認する</span></div>
 
+<!-- 通知許可の説明モーダル -->
 <div class="modal-overlay" id="modal-notif" onclick="closeNotifModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -513,6 +526,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
+<!-- 通知が拒否済みの人向けの案内モーダル -->
 <div class="modal-overlay" id="modal-notif-denied" onclick="closeDeniedNotifModal()">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -523,6 +537,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)}
       以前「許可しない」を選ばれた場合、恐れ入りますが、お使いの端末のブラウザ設定から、このサイトの通知を手動でオンに切り替えていただく必要があります。<br><br>
       うまくいかない・やり方が分からない場合は、下記のお問い合わせフォームからご連絡ください。
     </div>
+    <!-- TODO: 勝中版お問い合わせフォームのURL開設後に差し替え -->
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSc6bMMp95yYXFY1CGYaJWWLvIQM1yhB6o4-26Hp0f6ZgVUHHQ/viewform?usp=publish-editor" target="_blank" rel="noopener noreferrer" style="display:block;text-align:center;font-size:13px;color:var(--blue);font-weight:700;margin-bottom:14px">📋 お問い合わせフォーム</a>
     <button class="btn btn-primary" onclick="closeDeniedNotifModal()" style="width:100%">
       分かりました
@@ -537,6 +552,9 @@ var M=[], P=[], selId=null, pf="全", selectedPeriod="全期";
 var favUser = null;
 var boardVerifiedUser = null;
 
+// ===================================================
+// 部室データをconfig.jsonから読み込む
+// ===================================================
 var AL = [];
 fetch('config.json')
   .then(function(r){ return r.json(); })
@@ -549,6 +567,7 @@ fetch('config.json')
 var AC=["#1d3f6e","#0f6e56","#993c1d","#993556","#3b6d11","#854f0b"];
 var API_URL="https://script.google.com/macros/s/AKfycbzJMZoGWMNfQ-8riJvJycnyoT6VzCdxL68jrf_Keiqp3VjLlM2_VJDqZgJJNl-lpjR3qQ/exec";
 
+// 全角数字を半角に変換（日本語入力で全角のまま数字を打ってしまうケースに対応）
 function toHalfWidthDigits(s){
   return (s||'').replace(/[０-９]/g, function(c){
     return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
@@ -665,6 +684,9 @@ function toggleFav(id,e){
   });
 }
 
+// ===================================================
+// 近況更新モーダル（2ステップ）
+// ===================================================
 function openDet(id){
   var m=M.find(function(x){return x.id===id;});
   if(!m || !m.uid || m.uid!==getMyUid()){
@@ -782,6 +804,9 @@ function doUpdate(){
   });
 }
 
+// ===================================================
+// コルクボード投稿モーダル（2ステップ）
+// ===================================================
 function openBoardModal(){
   document.getElementById("b_bd").value="";
   document.getElementById("b_title").value="";
@@ -931,6 +956,9 @@ function chkPass(){
   }
 }
 
+// ===================================================
+// メンバー一覧の端末内スナップショット
+// ===================================================
 function loadCachedMembersFromStorage(){
   try {
     var raw = localStorage.getItem('katsuchu_members_cache');
@@ -940,7 +968,7 @@ function loadCachedMembersFromStorage(){
   } catch(e){ return null; }
 }
 function saveCachedMembersToStorage(members){
-  try { localStorage.setItem('katsuchu_members_cache', JSON.stringify(members)); } catch(e){}
+  try { localStorage.setItem('katsuchu_members_cache', JSON.stringify(members)); } catch(e){ /* 保存できなくても致命的ではない */ }
 }
 
 function escHtmlLite(str){
@@ -949,6 +977,9 @@ function escHtmlLite(str){
   });
 }
 
+// ===================================================
+// URL関連ユーティリティ
+// ===================================================
 function stripInvisibleChars(str){
   return String(str || '').replace(/[\u200B-\u200D\uFEFF\u2060]/g, '');
 }
@@ -967,6 +998,9 @@ function safeUrl(url){
   return '';
 }
 
+// ===================================================
+// 写真館
+// ===================================================
 var GALLERY_MAX_DIMENSION = 1600;
 var GALLERY_JPEG_QUALITY = 0.8;
 var GALLERY_THUMB_DIMENSION = 180;
@@ -978,6 +1012,7 @@ function getMyUid(){
   return localStorage.getItem('katsuchu_uid') || '';
 }
 
+// 現在この端末が「誰」として認識されているかの表示名（キャッシュ済みメンバー一覧から検索）
 function getMyDisplayName(){
   var uid = getMyUid();
   if(!uid) return '';
@@ -985,6 +1020,8 @@ function getMyDisplayName(){
   return m ? m.name : '';
 }
 
+// 「現在○○さんとして操作しています」ラベルを指定要素に表示する
+// （端末共有時に、うっかり別人として書き込んでしまう事故を防ぐため）
 function showIdentityLabel(elId){
   var el = document.getElementById(elId);
   if(!el) return;
@@ -1245,6 +1282,9 @@ function uploadGalleryPhoto(){
     });
 }
 
+// ===================================================
+// View & News：写真／告知のサブタブ切り替え
+// ===================================================
 var GALLERY_SUBTAB = 'photo';
 
 function switchGalleryTab(sub){
@@ -1260,6 +1300,9 @@ function switchGalleryTab(sub){
   if(sub==='news') loadAnnounceFromAPI();
 }
 
+// ===================================================
+// お知らせ機能
+// ===================================================
 var AN_QUICK_REPLIES = ['参加します','懐かしい！行きたいです','何時からですか'];
 var AN_CURRENT_ID = null;
 var AN_CACHE = {};
@@ -1505,9 +1548,39 @@ function loadFromAPI(){
     });
 }
 
-var NOTIF_LAST_SHOWN_KEY = 'katsuchu_notif_last_shown';
-var NOTIF_REMIND_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
+function loadBoardFromAPI(){
+  if(P.length===0){
+    document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-sub);font-size:13px">読み込み中...</div>';
+  }
+  fetch(API_URL+"?action=getBoard&_ts="+Date.now(), {cache:"no-store"})
+    .then(function(r){return r.json();})
+    .then(function(data){P=Array.isArray(data)?data:[];renderP();})
+    .catch(function(){
+      if(P.length===0){
+        document.getElementById("pl").innerHTML='<div style="text-align:center;padding:20px;color:var(--text-ter)">読み込みに失敗しました。</div>';
+      }
+    });
+}
 
+// ===================================================
+// 通知許可バナー
+// 一度「あとで」にしても、二度と出さないのではなく、しばらく
+// 間隔を空けてから、また自然に目に入るようにする（しつこくしない
+// 程度に、忘れた頃にもう一度思い出してもらう）。
+// ブラウザで「ブロック（denied）」を選んでしまった人にも、同じ
+// 考え方で定期的に気づく機会を作る。ただし、ブロック状態は
+// JavaScriptから直接は解除できないため、その場合は「設定する」を
+// 押しても本物の許可ポップアップは出さず、ブラウザ設定を自分で
+// 開き直す簡単な案内を表示する（うまくいかない場合はお問い合わせ
+// フォームへ誘導）。
+// いきなりブラウザ標準の許可ポップアップは出さず、まずこちらで
+// 用意した説明画面を経由してから、本物の許可を求める二段階方式。
+// ===================================================
+var NOTIF_LAST_SHOWN_KEY = 'katsuchu_notif_last_shown';
+var NOTIF_REMIND_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; // 30日ごとに、また自然に目に入るようにする
+
+// 'granted'（許可済み）または通知非対応の環境ではnullを返す（バナー不要）。
+// それ以外（'default'＝未回答、'denied'＝拒否済み）は、その状態文字列を返す。
 function getNotifBannerState(){
   if(typeof Notification === 'undefined') return null;
   if(Notification.permission === 'granted') return null;
@@ -1571,51 +1644,38 @@ function closeDeniedNotifModal(){
 
 function requestNotifPermission(){
   document.getElementById('modal-notif').classList.remove('show');
-  Notification.requestPermission().then(function(permission) {
-    if(permission === 'granted') {
-      showToast('✓ 通知をオンにしました');
-      savePushSubscriptionId_();
-    } else {
-      showToast('通知の設定を確認しました');
-    }
-  }).catch(function(){
-    showToast('⚠ 通知の設定に失敗しました');
-  });
-}
-
-function savePushSubscriptionId_(tries){
-  tries = tries || 0;
-  var uid = getMyUid();
-  if(!uid) return;
-  
-  const vapidKey = "BJc6UKkFHcb9hWYZeDEtmqIJ9_bCIQOeUP1_qVJkStlZgEgND-wSpjZ72SbLiXWUxEozwBnQDQuAjR884R4L9LU";
-
-  navigator.serviceWorker.ready.then(function(registration) {
-    messaging.getToken({ vapidKey: vapidKey, serviceWorkerRegistration: registration }).then(function(currentToken) {
-      if (currentToken) {
-        gasGet({action:'savePushId', uid:uid, pushId:currentToken}, function(){});
-      }
-    }).catch(function(err) {
-      console.warn('Firebase Token Error:', err);
-      if(tries < 5){
-        setTimeout(function(){ savePushSubscriptionId_(tries+1); }, 1500);
-      }
+  if(window.OneSignalDeferred){
+    OneSignalDeferred.push(function(OneSignal){
+      OneSignal.Notifications.requestPermission().then(function(){
+        showToast(Notification.permission === 'granted' ? '✓ 通知をオンにしました' : '通知の設定を確認しました');
+        if(Notification.permission === 'granted') savePushSubscriptionId_(OneSignal);
+      }).catch(function(){
+        showToast('⚠ 通知の設定に失敗しました');
+      });
     });
-  });
+  }
 }
 
+// 画面上で通知購読の状態を確認するための診断表示（開発者ツール不要）
 function checkPushStatus(){
+  if(!window.OneSignalDeferred){
+    alert('OneSignalの読み込みに失敗しています。');
+    return;
+  }
   var swInfo = 'Service Worker：（確認中...）';
-  var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
-  
-  var showResult = function(tokenStr){
-    alert(
-      'ブラウザの通知許可：' + perm + '\n' +
-      '購読ID：' + tokenStr + '\n\n' +
-      swInfo
-    );
+  var showResult = function(){
+    OneSignalDeferred.push(function(OneSignal){
+      var perm = (typeof Notification!=='undefined') ? Notification.permission : '(不明)';
+      var id = OneSignal.User.PushSubscription.id;
+      var optedIn = OneSignal.User.PushSubscription.optedIn;
+      alert(
+        'ブラウザの通知許可：' + perm + '\n' +
+        '購読ID：' + (id || '（まだありません）') + '\n' +
+        '購読オン/オフ：' + optedIn + '\n\n' +
+        swInfo
+      );
+    });
   };
-  
   if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistrations().then(function(regs){
       if(regs.length === 0){
@@ -1626,34 +1686,40 @@ function checkPushStatus(){
           return 'scope=' + r.scope + '\nscript=' + script + '\nstate=' + (r.active ? r.active.state : '未アクティブ');
         }).join('\n---\n');
       }
-      
-      if(perm === 'granted') {
-        const vapidKey = "BJc6UKkFHcb9hWYZeDEtmqIJ9_bCIQOeUP1_qVJkStlZgEgND-wSpjZ72SbLiXWUxEozwBnQDQuAjR884R4L9LU";
-        navigator.serviceWorker.ready.then(function(registration) {
-          messaging.getToken({ vapidKey: vapidKey, serviceWorkerRegistration: registration })
-          .then(function(token) { showResult(token ? '取得済み（正常）' : '（空のID）'); })
-          .catch(function(err) { showResult('（エラー: ' + err.message + '）'); });
-        });
-      } else {
-        showResult('（通知が許可されていません）');
-      }
+      showResult();
     }).catch(function(){
       swInfo = 'Service Worker：確認できませんでした';
-      showResult('（不明）');
+      showResult();
     });
   } else {
     swInfo = 'このブラウザはService Workerに対応していません';
-    showResult('（非対応）');
+    showResult();
+  }
+}
+
+// 通知の許可が下りたら、OneSignalの購読ID（Subscription ID）を自分の行に保存する。
+// 許可直後はまだIDが確定していないことがあるため、少し待ってから数回試す。
+function savePushSubscriptionId_(OneSignal, tries){
+  tries = tries || 0;
+  var uid = getMyUid();
+  if(!uid) return;
+  var pid = OneSignal.User.PushSubscription.id;
+  if(pid){
+    gasGet({action:'savePushId', uid:uid, pushId:pid}, function(){});
+    return;
+  }
+  if(tries < 5){
+    setTimeout(function(){ savePushSubscriptionId_(OneSignal, tries+1); }, 1500);
   }
 }
 
 setTimeout(showNotifBannerIfNeeded, 1500);
 
+// PWA
 var deferredPrompt = null;
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
-      .catch(function(err){ console.log('SW登録失敗:', err); });
+    navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW登録失敗:', err); });
   });
 }
 window.addEventListener('beforeinstallprompt', function(e){
@@ -1671,6 +1737,7 @@ document.getElementById('pwa-install-btn').addEventListener('click', function(){
 window.addEventListener('appinstalled',function(){hidePwaBanner();showToast('✓ アプリとしてインストールされました');});
 function hidePwaBanner(){document.getElementById('pwa-banner').style.display='none';}
 
+// お気に入りログイン
 function favLogin(){
   normalizeDigitsField('fv_bd');
   var uid=getMyUid();
@@ -1725,11 +1792,19 @@ function initApp(){
 
   loadFromAPI();
 
-  if(typeof Notification!=='undefined' && Notification.permission==='granted'){
-    savePushSubscriptionId_();
+  // 既に通知許可済みの端末は、開くたびに購読IDを同期しておく
+  // （まだ一度も保存できていない場合や、IDが変わった場合の取りこぼしを防ぐ）
+  if(window.OneSignalDeferred && typeof Notification!=='undefined' && Notification.permission==='granted'){
+    OneSignalDeferred.push(function(OneSignal){
+      savePushSubscriptionId_(OneSignal);
+    });
   }
 }
 
+// ===================================================
+// 閲覧ゲート：katsuchu_uid（登録済みの証）が端末に無ければ
+// 中身を見せず、名前＋誕生日（確認用の数字）での本人確認を求める
+// ===================================================
 function checkAccessGate(){
   var uid;
   try{ uid = localStorage.getItem('katsuchu_uid'); }catch(e){ uid = null; }
@@ -1737,6 +1812,7 @@ function checkAccessGate(){
     document.getElementById('access-gate').style.display = 'none';
     initApp();
   }
+  // uidが無い場合はゲート画面を表示したまま待機（何も初期化しない）
 }
 
 function submitGateVerify(){
