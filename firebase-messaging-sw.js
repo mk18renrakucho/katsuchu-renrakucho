@@ -1,5 +1,6 @@
-importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js');
+// firebase-messaging-sw.js
+importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyDHTAfFAKYy5qBE8fGx7tq7nY2X1dOGjG0",
@@ -13,11 +14,10 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  self.registration.showNotification(
-    payload.notification.title || '勝中 連絡帳',
-    {
-      body: payload.notification.body || '新しいお知らせがあります',
-      icon: './icons/icon-192.png'
-    }
-  );
+  const title = payload.notification.title;
+  const options = {
+    body: payload.notification.body,
+    icon: '/katsuchu-renrakucho/icon-192.png' // 既存のアイコンがあればパスを合わせてください
+  };
+  self.registration.showNotification(title, options);
 });
